@@ -8,7 +8,7 @@ import {
   DynamicEvaluationError,
   CreateFailureError,
 } from "../domain/errors.js";
-import type { AttrSequence } from "../domain/sequences.js";
+import { AttrSequence } from "../domain/sequences.js";
 import type { PrototypeStorePort } from "../ports/prototype-store-port.js";
 import type { CreatePort, RunMode } from "../ports/create-port.js";
 import { mergeInput, orderRefs } from "./planner.js";
@@ -17,7 +17,7 @@ interface ResolveContext {
   readonly results: RunResult<CatalogShape>;
   readonly mode: RunMode;
   readonly ref: PrototypeRef;
-  readonly attrSequence: AttrSequence | undefined;
+  readonly attrSequence: AttrSequence;
   readonly runCtx: Record<string, unknown>;
 }
 
@@ -37,7 +37,7 @@ export async function execute<Catalog extends CatalogShape>(
   for (const ref of ordered) {
     const handle = store.lookup(ref);
     const mergedInput = mergeInput(handle.input, overrides[ref.resource]?.[ref.prototype]);
-    const rctx: ResolveContext = { results, mode, ref, attrSequence, runCtx: ctx };
+    const rctx: ResolveContext = { results, mode, ref, attrSequence: attrSequence ?? new AttrSequence(), runCtx: ctx };
     const resolvedAttrs = await resolveRuntimeValues(mergedInput, rctx) as ResultRecord;
 
     let created: ResultRecord;
@@ -95,9 +95,7 @@ async function resolveRuntimeValues(
 
   if (isDynamic(value)) {
     const attr = currentAttr ?? "unknown";
-    const seqIndex = ctx.attrSequence
-      ? ctx.attrSequence.next(ctx.ref.resource, ctx.ref.prototype, attr)
-      : 1;
+    const seqIndex = ctx.attrSequence.next(ctx.ref.resource, ctx.ref.prototype, attr);
 
     try {
       return await value.fn({

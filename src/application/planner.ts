@@ -1,6 +1,6 @@
 import type { CatalogShape, PrototypeRef, ScenarioPrototypeMap } from "../domain/types.js";
 import { isPrototypeRef, toResultKey } from "../domain/refs.js";
-import { isDepField } from "../domain/runtime-values.js";
+import { isDepField, isDynamic } from "../domain/runtime-values.js";
 import { DependencyCycleError } from "../domain/errors.js";
 import type { PrototypeStorePort } from "../ports/prototype-store-port.js";
 
@@ -94,6 +94,10 @@ function collectDependenciesInto(value: unknown, refs: PrototypeRef[]): void {
   if (isDepField(value)) {
     refs.push(value.ref);
     return;
+  }
+
+  if (isDynamic(value)) {
+    return; // dependencies resolved at runtime, not statically extractable
   }
 
   if (Array.isArray(value)) {

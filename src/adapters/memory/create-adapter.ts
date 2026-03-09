@@ -35,12 +35,14 @@ export class MemoryCreateAdapter<Catalog extends CatalogShape> implements Create
       };
     }
 
+    const now = this.#clock.now();
+
     if (resolveField(record, "inserted_at") === undefined) {
-      record = { ...record, inserted_at: this.#clock.now() };
+      record = { ...record, inserted_at: now };
     }
 
     if (resolveField(record, "updated_at") === undefined) {
-      record = { ...record, updated_at: this.#clock.now() };
+      record = { ...record, updated_at: now };
     }
 
     return record;
