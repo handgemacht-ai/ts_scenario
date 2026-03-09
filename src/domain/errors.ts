@@ -77,3 +77,13 @@ export class CreateFailureError extends Error {
     this.prototype = prototype;
   }
 }
+
+export class ScenarioInheritanceCycleError extends Error {
+  readonly cycle: string[];
+
+  constructor(cycle: string[]) {
+    super(`Scenario inheritance cycle detected: ${cycle.join(" -> ")}`);
+    this.name = "ScenarioInheritanceCycleError";
+    this.cycle = cycle;
+  }
+}

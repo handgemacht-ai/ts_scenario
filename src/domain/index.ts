@@ -11,6 +11,7 @@ export {
   MissingDependencyFieldError,
   DynamicEvaluationError,
   CreateFailureError,
+  ScenarioInheritanceCycleError,
 } from "./errors.js";
 export type { ResultRecord } from "./results.js";
 export type { DepFieldValue, DynamicValue, DynamicContext } from "./runtime-values.js";

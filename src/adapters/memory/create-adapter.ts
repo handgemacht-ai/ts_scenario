@@ -21,12 +21,20 @@ export class MemoryCreateAdapter<Catalog extends CatalogShape> implements Create
   }
 
   async create(context: CreateContext): Promise<ResultRecord> {
-    const handler = this.#handlers[context.resource as Extract<keyof Catalog, string>];
     const protoRef = ref(context.resource as ResourceKey, context.prototype);
 
-    let record = handler
-      ? await handler(context)
-      : { id: this.#sequence.next(protoRef), ...context.attrs };
+    // Create precedence: context.create (entry/override/prototype level) > resource handler > default
+    const customCreate = context.create;
+    const handler = this.#handlers[context.resource as Extract<keyof Catalog, string>];
+
+    let record: ResultRecord;
+    if (customCreate) {
+      record = await customCreate(context);
+    } else if (handler) {
+      record = await handler(context);
+    } else {
+      record = { id: this.#sequence.next(protoRef), ...context.attrs };
+    }
 
     if (resolveField(record, "id") === undefined) {
       record = {

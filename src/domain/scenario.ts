@@ -1,4 +1,5 @@
 import type { CatalogShape, ScenarioPrototypeMap } from "./types.js";
+import { ScenarioInheritanceCycleError } from "./errors.js";
 
 export interface ScenarioDefinition<
   Catalog extends CatalogShape,
@@ -35,12 +36,29 @@ export function defineScenario<
 
 export function materializeScenario<Catalog extends CatalogShape>(
   scenario: ScenarioDefinition<Catalog, string>,
+  visited?: Set<string>,
+  path?: string[],
 ): ScenarioDefinition<Catalog, string> {
+  const seen = visited ?? new Set<string>();
+  const chain = path ?? [];
+
+  if (seen.has(scenario.name)) {
+    const cycleStart = chain.indexOf(scenario.name);
+    const cycle = [...chain.slice(cycleStart), scenario.name];
+    throw new ScenarioInheritanceCycleError(cycle);
+  }
+
+  seen.add(scenario.name);
+  chain.push(scenario.name);
+
   const mergedParents = scenario.extends.reduce<ScenarioPrototypeMap<Catalog>>(
     (acc, parent) =>
-      mergeScenarioPrototypeMaps(acc, materializeScenario(parent).prototypes),
+      mergeScenarioPrototypeMaps(acc, materializeScenario(parent, seen, chain).prototypes),
     {},
   );
+
+  chain.pop();
+  seen.delete(scenario.name);
 
   return {
     ...scenario,

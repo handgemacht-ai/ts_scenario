@@ -11,18 +11,24 @@ export {
   MissingDependencyFieldError,
   DynamicEvaluationError,
   CreateFailureError,
+  ScenarioInheritanceCycleError,
 } from "../domain/errors.js";
+export { prototype, override, entry } from "./wrappers.js";
 export { createRegistry } from "./registry.js";
 export type {
   CatalogShape,
   Link,
+  MetadataOptions,
+  OverrideSpec,
   PrototypeCollection,
   PrototypeHandle,
   PrototypeRef,
+  PrototypeSpec,
   ResourceDefinition,
   ResourceInput,
   ResourceKey,
   ResourceRecord,
+  RunEntry,
   ScenarioPrototypeMap,
   TsScenarioResources,
 } from "../domain/types.js";

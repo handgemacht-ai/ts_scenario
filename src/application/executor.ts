@@ -1,4 +1,4 @@
-import type { CatalogShape, PrototypeRef, ScenarioPrototypeMap } from "../domain/types.js";
+import type { CatalogShape, MetadataOptions, OverrideSpec, PrototypeRef, ScenarioPrototypeMap } from "../domain/types.js";
 import { isPrototypeRef, toResultKey } from "../domain/refs.js";
 import { RunResult, resolveField, type ResultRecord } from "../domain/results.js";
 import { isDepField, isDynamic } from "../domain/runtime-values.js";
@@ -10,8 +10,16 @@ import {
 } from "../domain/errors.js";
 import { AttrSequence } from "../domain/sequences.js";
 import type { PrototypeStorePort } from "../ports/prototype-store-port.js";
-import type { CreatePort, RunMode } from "../ports/create-port.js";
+import type { CreatePort, CreateContext, RunMode } from "../ports/create-port.js";
 import { mergeInput, orderRefs } from "./planner.js";
+
+function isOverrideSpec(value: unknown): value is OverrideSpec {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    (value as OverrideSpec).$kind === "override-spec"
+  );
+}
 
 interface ResolveContext {
   readonly results: RunResult<CatalogShape>;
@@ -19,6 +27,11 @@ interface ResolveContext {
   readonly ref: PrototypeRef;
   readonly attrSequence: AttrSequence;
   readonly runCtx: Record<string, unknown>;
+}
+
+export interface ExecuteMetadata {
+  readonly overrideMetadata?: Record<string, MetadataOptions>;
+  readonly entryMetadata?: Record<string, MetadataOptions>;
 }
 
 export async function execute<Catalog extends CatalogShape>(
@@ -29,26 +42,82 @@ export async function execute<Catalog extends CatalogShape>(
   mode: RunMode,
   attrSequence?: AttrSequence,
   runCtx?: Record<string, unknown>,
+  metadata?: ExecuteMetadata,
 ): Promise<RunResult<Catalog>> {
-  const ordered = orderRefs(store, requested, overrides);
+  const { cleanOverrides, overrideMeta } = extractOverrideMetadata(overrides);
+  const ordered = orderRefs(store, requested, cleanOverrides, overrideMeta);
   const results = new RunResult<Catalog>();
   const ctx = runCtx ?? {};
 
   for (const ref of ordered) {
     const handle = store.lookup(ref);
-    const mergedInput = mergeInput(handle.input, overrides[ref.resource]?.[ref.prototype]);
+    const key = toResultKey(ref);
+
+    // Get override for this ref (already cleaned by extractOverrideMetadata)
+    const rawOverride = cleanOverrides[ref.resource]?.[ref.prototype] as Record<string, unknown> | undefined;
+    const mergedInput = mergeInput(handle.input, rawOverride);
     const rctx: ResolveContext = { results, mode, ref, attrSequence: attrSequence ?? new AttrSequence(), runCtx: ctx };
     const resolvedAttrs = await resolveRuntimeValues(mergedInput, rctx) as ResultRecord;
 
+    // Collect metadata from all levels (entry > override > prototype)
+    const entryMeta = metadata?.entryMetadata?.[key];
+    const ovrMeta = overrideMeta[key];
+    const protoMeta = handle.metadata;
+
+    const mergedMeta = mergeMetadata(entryMeta, ovrMeta, protoMeta);
+
+    // Resolve actor
+    let actor: ResultRecord | undefined;
+    if (mergedMeta.actor !== undefined) {
+      if (isPrototypeRef(mergedMeta.actor)) {
+        actor = results.get(mergedMeta.actor);
+      } else {
+        actor = mergedMeta.actor as ResultRecord;
+      }
+    }
+
+    // Resolve authorize
+    const authorize = mergedMeta.authorize !== undefined
+      ? mergedMeta.authorize
+      : actor !== undefined;
+
+    // Resolve tenant
+    let tenant: unknown;
+    let finalAttrs = resolvedAttrs;
+    if (mergedMeta.tenantFrom) {
+      const tenantField = mergedMeta.tenantFrom;
+      tenant = resolveField(resolvedAttrs, tenantField);
+
+      if (mode === "persisted") {
+        // Remove tenant attr from attrs in persisted mode
+        const { [tenantField]: _, ...rest } = resolvedAttrs;
+        finalAttrs = rest;
+      }
+    }
+
+    // Resolve create function precedence: entry > override > prototype > resource > default
+    const createFn = entryMeta?.create ?? ovrMeta?.create ?? protoMeta?.create;
+
+    const createContext: CreateContext = {
+      ref,
+      resource: ref.resource,
+      prototype: ref.prototype,
+      mode,
+      attrs: finalAttrs,
+      runCtx: ctx,
+      results,
+      action: mergedMeta.action,
+      actor,
+      authorize,
+      tenant,
+      create: createFn,
+    };
+
     let created: ResultRecord;
     try {
-      created = await createPort.create({
-        resource: ref.resource,
-        prototype: ref.prototype,
-        mode,
-        attrs: resolvedAttrs,
-      });
+      created = await createPort.create(createContext);
     } catch (err) {
+      if (err instanceof CreateFailureError) throw err;
       throw new CreateFailureError(ref.resource, ref.prototype, err);
     }
 
@@ -56,6 +125,53 @@ export async function execute<Catalog extends CatalogShape>(
   }
 
   return results;
+}
+
+function mergeMetadata(
+  ...sources: (MetadataOptions | undefined)[]
+): MetadataOptions {
+  const result: Record<string, unknown> = {};
+  // Iterate from lowest to highest priority
+  for (const source of [...sources].reverse()) {
+    if (!source) continue;
+    for (const [key, value] of Object.entries(source)) {
+      if (value !== undefined) {
+        result[key] = value;
+      }
+    }
+  }
+  return result as MetadataOptions;
+}
+
+function extractOverrideMetadata<Catalog extends CatalogShape>(
+  overrides: ScenarioPrototypeMap<Catalog>,
+): {
+  cleanOverrides: ScenarioPrototypeMap<Catalog>;
+  overrideMeta: Record<string, MetadataOptions>;
+} {
+  const cleanOverrides: Record<string, Record<string, unknown>> = {};
+  const overrideMeta: Record<string, MetadataOptions> = {};
+
+  for (const resource of Object.keys(overrides)) {
+    const byName = overrides[resource as keyof Catalog];
+    if (!byName) continue;
+
+    cleanOverrides[resource] = {};
+    for (const [name, value] of Object.entries(byName as Record<string, unknown>)) {
+      const key = `${resource}:${name}`;
+      if (isOverrideSpec(value)) {
+        cleanOverrides[resource][name] = value.attrs;
+        overrideMeta[key] = value.options;
+      } else {
+        cleanOverrides[resource][name] = value;
+      }
+    }
+  }
+
+  return {
+    cleanOverrides: cleanOverrides as ScenarioPrototypeMap<Catalog>,
+    overrideMeta,
+  };
 }
 
 async function resolveRuntimeValues(

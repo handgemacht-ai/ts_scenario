@@ -36,6 +36,7 @@ export interface PrototypeHandle<
   readonly name: N;
   readonly input: Readonly<ResourceInput<R>>;
   readonly ref: PrototypeRef<R, N>;
+  readonly metadata?: MetadataOptions;
 }
 
 export type PrototypeCollection<
@@ -60,6 +61,33 @@ export type ScenarioPrototypeMap<Catalog extends CatalogShape> = {
   [Resource in keyof Catalog]?: {
     [Name in keyof Catalog[Resource]]?: RuntimeOverride<
       ResourceInput<Extract<Resource, ResourceKey>>
-    >;
+    > | OverrideSpec<ResourceInput<Extract<Resource, ResourceKey>>>;
   };
 };
+
+export interface MetadataOptions {
+  readonly action?: string;
+  readonly actor?: PrototypeRef | Record<string, unknown>;
+  readonly authorize?: boolean;
+  readonly tenantFrom?: string;
+  readonly create?: (context: any) => Record<string, unknown> | Promise<Record<string, unknown>>;
+}
+
+export interface PrototypeSpec<Input = Record<string, unknown>> {
+  readonly $kind: "prototype-spec";
+  readonly attrs: Input;
+  readonly options: MetadataOptions;
+}
+
+export interface OverrideSpec<Input = Record<string, unknown>> {
+  readonly $kind: "override-spec";
+  readonly attrs: Partial<Input>;
+  readonly options: MetadataOptions;
+}
+
+export interface RunEntry {
+  readonly $kind: "run-entry";
+  readonly target: PrototypeRef;
+  readonly attrs: Record<string, unknown>;
+  readonly options: MetadataOptions;
+}

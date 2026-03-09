@@ -1,4 +1,4 @@
-import type { CatalogShape, PrototypeRef, ScenarioPrototypeMap } from "../domain/types.js";
+import type { CatalogShape, MetadataOptions, OverrideSpec, PrototypeRef, ScenarioPrototypeMap } from "../domain/types.js";
 import { isPrototypeRef, toResultKey } from "../domain/refs.js";
 import { isDepField, isDynamic } from "../domain/runtime-values.js";
 import { DependencyCycleError } from "../domain/errors.js";
@@ -15,7 +15,33 @@ export function orderRefs<Catalog extends CatalogShape>(
   store: PrototypeStorePort,
   requested: PrototypeRef[],
   overrides: ScenarioPrototypeMap<Catalog>,
+  overrideMeta?: Record<string, MetadataOptions>,
 ): PrototypeRef[] {
+  // First pass: collect all actor refs and ensure they are in the requested set.
+  // Actor refs are NOT hard dependencies for ordering — they are resolved from
+  // results at create time. But they must be auto-included in the graph so they
+  // get created.
+  const allRequested = [...requested];
+
+  const ensureActorRefsIncluded = (refs: PrototypeRef[]): void => {
+    for (const ref of refs) {
+      const key = toResultKey(ref);
+      const handle = store.lookup(ref);
+      const protoActorRef = handle.metadata?.actor;
+      const overrideActorRef = overrideMeta?.[key]?.actor;
+      const actorRef = overrideActorRef ?? protoActorRef;
+      if (actorRef && isPrototypeRef(actorRef)) {
+        const actorKey = toResultKey(actorRef);
+        if (!allRequested.some((r) => toResultKey(r) === actorKey)) {
+          allRequested.push(actorRef);
+          ensureActorRefsIncluded([actorRef]);
+        }
+      }
+    }
+  };
+  ensureActorRefsIncluded(requested);
+
+  // Second pass: topological sort based on attribute data dependencies only.
   const ordered: PrototypeRef[] = [];
   const visiting = new Set<string>();
   const visited = new Set<string>();
@@ -38,7 +64,7 @@ export function orderRefs<Catalog extends CatalogShape>(
     visiting.add(key);
     path.push(key);
 
-    const mergedInput = mergeInput(handle.input, overrides[ref.resource]?.[ref.prototype]);
+    const mergedInput = mergeInput(handle.input, overrides[ref.resource]?.[ref.prototype] as Record<string, unknown> | undefined);
     for (const dep of collectDependencies(mergedInput)) {
       visit(dep);
     }
@@ -49,7 +75,7 @@ export function orderRefs<Catalog extends CatalogShape>(
     ordered.push(ref);
   };
 
-  for (const ref of requested) {
+  for (const ref of allRequested) {
     visit(ref);
   }
 
