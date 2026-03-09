@@ -21,6 +21,9 @@ export { prototype, override, entry } from "./wrappers.js";
 export { createRegistry } from "./registry.js";
 export { fixturegen } from "./fixturegen.js";
 export { Fixture } from "../application/fixture/build-fixture.js";
+export { seed } from "./seed.js";
+export type { Seeder, SeederContext } from "./seed.js";
+export { testing } from "./testing.js";
 export type {
   CatalogShape,
   Link,

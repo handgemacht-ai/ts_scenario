@@ -35,6 +35,8 @@ export {
   entry,
   fixturegen,
   Fixture,
+  seed,
+  testing,
 } from "./public/index.js";
 export type {
   CatalogShape,
@@ -65,4 +67,6 @@ export type {
   FixtureCreateHandler,
   FixtureSchema,
   FixturePrototype,
+  Seeder,
+  SeederContext,
 } from "./public/index.js";
