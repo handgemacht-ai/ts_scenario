@@ -42,27 +42,3 @@ export function entry(
     options: options ?? {},
   };
 }
-
-export function isPrototypeSpec(value: unknown): value is PrototypeSpec {
-  return (
-    typeof value === "object" &&
-    value !== null &&
-    (value as PrototypeSpec).$kind === "prototype-spec"
-  );
-}
-
-export function isOverrideSpec(value: unknown): value is OverrideSpec {
-  return (
-    typeof value === "object" &&
-    value !== null &&
-    (value as OverrideSpec).$kind === "override-spec"
-  );
-}
-
-export function isRunEntry(value: unknown): value is RunEntry {
-  return (
-    typeof value === "object" &&
-    value !== null &&
-    (value as RunEntry).$kind === "run-entry"
-  );
-}

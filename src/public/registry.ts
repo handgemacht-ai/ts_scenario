@@ -3,7 +3,7 @@ import type { ScenarioDefinition } from "../domain/scenario.js";
 import { materializeScenario, mergeScenarioPrototypeMaps } from "../domain/scenario.js";
 import { AttrSequence } from "../domain/sequences.js";
 import { UnknownResourceError } from "../domain/errors.js";
-import { toResultKey } from "../domain/refs.js";
+import { isRunEntry, toResultKey } from "../domain/refs.js";
 import type { PrototypeStorePort } from "../ports/prototype-store-port.js";
 import type { CreatePort, RunMode } from "../ports/create-port.js";
 import type { RunResult } from "../domain/results.js";
@@ -13,14 +13,6 @@ import { MemorySequenceAdapter } from "../adapters/memory/sequence-adapter.js";
 import { MemoryClockAdapter } from "../adapters/memory/clock-adapter.js";
 import { execute, type ExecuteMetadata } from "../application/executor.js";
 import { collectRequestedRefs } from "../application/planner.js";
-
-function isRunEntry(value: unknown): value is RunEntry {
-  return (
-    typeof value === "object" &&
-    value !== null &&
-    (value as RunEntry).$kind === "run-entry"
-  );
-}
 
 export interface RunOptions<Catalog extends CatalogShape> {
   mode?: RunMode;
@@ -80,7 +72,7 @@ export class Registry<Catalog extends CatalogShape> {
           entryMetadata[key] = item.options;
         }
       } else {
-        requested.push(toPrototypeRef(item));
+        requested.push(item.$kind === "prototype-ref" ? item : item.ref);
       }
     }
 
@@ -155,9 +147,3 @@ export class Registry<Catalog extends CatalogShape> {
   }
 }
 
-function toPrototypeRef(target: PrototypeHandle | PrototypeRef): PrototypeRef {
-  if (target.$kind === "prototype-ref") {
-    return target;
-  }
-  return target.ref;
-}

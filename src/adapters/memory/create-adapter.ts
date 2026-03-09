@@ -1,5 +1,4 @@
-import type { CatalogShape, ResourceKey } from "../../domain/types.js";
-import { ref } from "../../domain/refs.js";
+import type { CatalogShape } from "../../domain/types.js";
 import { resolveField, type ResultRecord } from "../../domain/results.js";
 import type { CreateContext, CreatePort } from "../../ports/create-port.js";
 import type { SequencePort } from "../../ports/sequence-port.js";
@@ -21,9 +20,6 @@ export class MemoryCreateAdapter<Catalog extends CatalogShape> implements Create
   }
 
   async create(context: CreateContext): Promise<ResultRecord> {
-    const protoRef = ref(context.resource as ResourceKey, context.prototype);
-
-    // Create precedence: context.create (entry/override/prototype level) > resource handler > default
     const customCreate = context.create;
     const handler = this.#handlers[context.resource as Extract<keyof Catalog, string>];
 
@@ -33,12 +29,12 @@ export class MemoryCreateAdapter<Catalog extends CatalogShape> implements Create
     } else if (handler) {
       record = await handler(context);
     } else {
-      record = { id: this.#sequence.next(protoRef), ...context.attrs };
+      record = { id: this.#sequence.next(context.ref), ...context.attrs };
     }
 
     if (resolveField(record, "id") === undefined) {
       record = {
-        id: this.#sequence.next(protoRef),
+        id: this.#sequence.next(context.ref),
         ...record,
       };
     }

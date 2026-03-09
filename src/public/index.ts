@@ -1,4 +1,4 @@
-export { defineCatalog, definePrototypes, ref, isPrototypeRef, toResultKey } from "../domain/refs.js";
+export { defineCatalog, definePrototypes, ref, isPrototypeRef, isPrototypeSpec, isOverrideSpec, isRunEntry, toResultKey } from "../domain/refs.js";
 export { RunResult, resolveField } from "../domain/results.js";
 export { defineScenario, materializeScenario, mergeScenarioPrototypeMaps } from "../domain/scenario.js";
 export { depField, isDepField, dynamic, isDynamic } from "../domain/runtime-values.js";

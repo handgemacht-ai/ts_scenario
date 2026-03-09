@@ -1,4 +1,4 @@
-import type { CatalogShape, MetadataOptions, OverrideSpec, PrototypeRef, ScenarioPrototypeMap } from "../domain/types.js";
+import type { CatalogShape, MetadataOptions, PrototypeRef, ScenarioPrototypeMap } from "../domain/types.js";
 import { isPrototypeRef, toResultKey } from "../domain/refs.js";
 import { isDepField, isDynamic } from "../domain/runtime-values.js";
 import { DependencyCycleError } from "../domain/errors.js";

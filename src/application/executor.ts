@@ -1,5 +1,5 @@
-import type { CatalogShape, MetadataOptions, OverrideSpec, PrototypeRef, ScenarioPrototypeMap } from "../domain/types.js";
-import { isPrototypeRef, toResultKey } from "../domain/refs.js";
+import type { CatalogShape, MetadataOptions, PrototypeRef, ScenarioPrototypeMap } from "../domain/types.js";
+import { isOverrideSpec, isPrototypeRef, toResultKey } from "../domain/refs.js";
 import { RunResult, resolveField, type ResultRecord } from "../domain/results.js";
 import { isDepField, isDynamic } from "../domain/runtime-values.js";
 import {
@@ -12,14 +12,6 @@ import { AttrSequence } from "../domain/sequences.js";
 import type { PrototypeStorePort } from "../ports/prototype-store-port.js";
 import type { CreatePort, CreateContext, RunMode } from "../ports/create-port.js";
 import { mergeInput, orderRefs } from "./planner.js";
-
-function isOverrideSpec(value: unknown): value is OverrideSpec {
-  return (
-    typeof value === "object" &&
-    value !== null &&
-    (value as OverrideSpec).$kind === "override-spec"
-  );
-}
 
 interface ResolveContext {
   readonly results: RunResult<CatalogShape>;
@@ -53,20 +45,16 @@ export async function execute<Catalog extends CatalogShape>(
     const handle = store.lookup(ref);
     const key = toResultKey(ref);
 
-    // Get override for this ref (already cleaned by extractOverrideMetadata)
     const rawOverride = cleanOverrides[ref.resource]?.[ref.prototype] as Record<string, unknown> | undefined;
     const mergedInput = mergeInput(handle.input, rawOverride);
     const rctx: ResolveContext = { results, mode, ref, attrSequence: attrSequence ?? new AttrSequence(), runCtx: ctx };
     const resolvedAttrs = await resolveRuntimeValues(mergedInput, rctx) as ResultRecord;
 
-    // Collect metadata from all levels (entry > override > prototype)
     const entryMeta = metadata?.entryMetadata?.[key];
     const ovrMeta = overrideMeta[key];
     const protoMeta = handle.metadata;
+    const mergedMeta = mergeMetadata(protoMeta, ovrMeta, entryMeta);
 
-    const mergedMeta = mergeMetadata(entryMeta, ovrMeta, protoMeta);
-
-    // Resolve actor
     let actor: ResultRecord | undefined;
     if (mergedMeta.actor !== undefined) {
       if (isPrototypeRef(mergedMeta.actor)) {
@@ -76,12 +64,10 @@ export async function execute<Catalog extends CatalogShape>(
       }
     }
 
-    // Resolve authorize
     const authorize = mergedMeta.authorize !== undefined
       ? mergedMeta.authorize
       : actor !== undefined;
 
-    // Resolve tenant
     let tenant: unknown;
     let finalAttrs = resolvedAttrs;
     if (mergedMeta.tenantFrom) {
@@ -95,7 +81,6 @@ export async function execute<Catalog extends CatalogShape>(
       }
     }
 
-    // Resolve create function precedence: entry > override > prototype > resource > default
     const createFn = entryMeta?.create ?? ovrMeta?.create ?? protoMeta?.create;
 
     const createContext: CreateContext = {
@@ -131,8 +116,7 @@ function mergeMetadata(
   ...sources: (MetadataOptions | undefined)[]
 ): MetadataOptions {
   const result: Record<string, unknown> = {};
-  // Iterate from lowest to highest priority
-  for (const source of [...sources].reverse()) {
+  for (const source of sources) {
     if (!source) continue;
     for (const [key, value] of Object.entries(source)) {
       if (value !== undefined) {

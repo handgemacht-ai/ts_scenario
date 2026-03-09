@@ -1,12 +1,14 @@
 import type {
   CatalogShape,
   MetadataOptions,
+  OverrideSpec,
   PrototypeCollection,
   PrototypeHandle,
   PrototypeRef,
   PrototypeSpec,
   ResourceInput,
   ResourceKey,
+  RunEntry,
 } from "./types.js";
 
 export function ref<
@@ -20,7 +22,7 @@ export function ref<
   };
 }
 
-function isPrototypeSpec(value: unknown): value is PrototypeSpec {
+export function isPrototypeSpec(value: unknown): value is PrototypeSpec {
   return (
     typeof value === "object" &&
     value !== null &&
@@ -33,10 +35,9 @@ export function definePrototypes<
   const P extends Record<string, ResourceInput<R> | PrototypeSpec<ResourceInput<R>>>,
 >(resource: R, prototypes: P): PrototypeCollection<R, P & Record<string, ResourceInput<R>>> {
   const entries = Object.entries(prototypes).map(([name, inputOrSpec]) => {
-    const rawInput = isPrototypeSpec(inputOrSpec) ? inputOrSpec.attrs : inputOrSpec;
-    const metadata: MetadataOptions | undefined = isPrototypeSpec(inputOrSpec)
-      ? inputOrSpec.options
-      : undefined;
+    const spec = isPrototypeSpec(inputOrSpec);
+    const rawInput = spec ? inputOrSpec.attrs : inputOrSpec;
+    const metadata: MetadataOptions | undefined = spec ? inputOrSpec.options : undefined;
 
     const handle: PrototypeHandle<R, string> = {
       $kind: "prototype-handle",
@@ -64,6 +65,22 @@ export function isPrototypeRef(value: unknown): value is PrototypeRef {
     typeof value === "object" &&
     value !== null &&
     (value as PrototypeRef).$kind === "prototype-ref"
+  );
+}
+
+export function isOverrideSpec(value: unknown): value is OverrideSpec {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    (value as OverrideSpec).$kind === "override-spec"
+  );
+}
+
+export function isRunEntry(value: unknown): value is RunEntry {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    (value as RunEntry).$kind === "run-entry"
   );
 }
 
