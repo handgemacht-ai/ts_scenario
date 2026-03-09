@@ -2,7 +2,17 @@
   "name": "ts_scenario",
   "private": true,
   "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" },
+    "./seed": { "types": "./dist/public/seed.d.ts", "import": "./dist/public/seed.js" },
+    "./testing": { "types": "./dist/public/testing.d.ts", "import": "./dist/public/testing.js" },
+    "./runtime/node": { "types": "./dist/runtime/node.d.ts", "import": "./dist/runtime/node.js" }
+  },
+  "files": ["dist", "LICENSE", "README.md"],
   "scripts": {
+    "build": "tsc -p tsconfig.build.json",
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit"

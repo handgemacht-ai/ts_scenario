@@ -1,8 +1,12 @@
 export interface TsScenarioResources {}
 
-export type ResourceKey = keyof TsScenarioResources & string;
+export type ResourceKey = [keyof TsScenarioResources] extends [never]
+  ? string
+  : keyof TsScenarioResources & string;
 
-export type ResourceDefinition<K extends ResourceKey> = TsScenarioResources[K];
+export type ResourceDefinition<K extends ResourceKey> = [keyof TsScenarioResources] extends [never]
+  ? { input: Record<string, unknown>; record: Record<string, unknown> }
+  : TsScenarioResources[K & keyof TsScenarioResources];
 
 export type ResourceInput<K extends ResourceKey> = ResourceDefinition<K> extends {
   input: infer Input;
