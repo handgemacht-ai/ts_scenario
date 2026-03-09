@@ -16,6 +16,7 @@ export function orderRefs<Catalog extends CatalogShape>(
   requested: PrototypeRef[],
   overrides: ScenarioPrototypeMap<Catalog>,
   overrideMeta?: Record<string, MetadataOptions>,
+  entryMeta?: Record<string, MetadataOptions>,
 ): PrototypeRef[] {
   // First pass: collect all actor refs and ensure they are in the requested set.
   // Actor refs are NOT hard dependencies for ordering — they are resolved from
@@ -29,7 +30,8 @@ export function orderRefs<Catalog extends CatalogShape>(
       const handle = store.lookup(ref);
       const protoActorRef = handle.metadata?.actor;
       const overrideActorRef = overrideMeta?.[key]?.actor;
-      const actorRef = overrideActorRef ?? protoActorRef;
+      const entryActorRef = entryMeta?.[key]?.actor;
+      const actorRef = entryActorRef ?? overrideActorRef ?? protoActorRef;
       if (actorRef && isPrototypeRef(actorRef)) {
         const actorKey = toResultKey(actorRef);
         if (!allRequested.some((r) => toResultKey(r) === actorKey)) {

@@ -40,8 +40,8 @@ export function materializeScenario<Catalog extends CatalogShape>(
   visited?: Set<string>,
   path?: string[],
 ): ScenarioDefinition<Catalog, string> {
-  const seen = visited ?? new Set<string>();
-  const chain = path ?? [];
+  const seen = new Set(visited);
+  const chain = [...(path ?? [])];
 
   if (seen.has(scenario.name)) {
     const cycleStart = chain.indexOf(scenario.name);
@@ -57,9 +57,6 @@ export function materializeScenario<Catalog extends CatalogShape>(
       mergeScenarioPrototypeMaps(acc, materializeScenario(parent, seen, chain).prototypes),
     {},
   );
-
-  chain.pop();
-  seen.delete(scenario.name);
 
   return {
     ...scenario,

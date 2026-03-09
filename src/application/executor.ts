@@ -22,7 +22,6 @@ interface ResolveContext {
 }
 
 export interface ExecuteMetadata {
-  readonly overrideMetadata?: Record<string, MetadataOptions>;
   readonly entryMetadata?: Record<string, MetadataOptions>;
 }
 
@@ -37,7 +36,7 @@ export async function execute<Catalog extends CatalogShape>(
   metadata?: ExecuteMetadata,
 ): Promise<RunResult<Catalog>> {
   const { cleanOverrides, overrideMeta } = extractOverrideMetadata(overrides);
-  const ordered = orderRefs(store, requested, cleanOverrides, overrideMeta);
+  const ordered = orderRefs(store, requested, cleanOverrides, overrideMeta, metadata?.entryMetadata);
   const results = new RunResult<Catalog>();
   const ctx = runCtx ?? {};
 
