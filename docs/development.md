@@ -16,10 +16,13 @@ src/
 
 Core types and logic with no external dependencies:
 
-- `types.ts` — `TsScenarioResources`, `ResourceKey`, `PrototypeRef`, `PrototypeHandle`, `CatalogShape`, `ScenarioPrototypeMap`
+- `types.ts` — `TsScenarioResources`, `ResourceKey`, `PrototypeRef`, `PrototypeHandle`, `CatalogShape`, `ScenarioPrototypeMap`, `RuntimeOverride`, `TaggedRuntimeValue`
 - `refs.ts` — `ref()`, `definePrototypes()`, `defineCatalog()`, `isPrototypeRef()`, `toResultKey()`
 - `scenario.ts` — `ScenarioDefinition`, `defineScenario()`, `materializeScenario()`, `mergeScenarioPrototypeMaps()`
 - `results.ts` — `RunResult`, `ResultRecord`, `resolveField()`
+- `runtime-values.ts` — `depField()`, `isDepField()`, `dynamic()`, `isDynamic()`, `DepFieldValue`, `DynamicValue`, `DynamicContext`
+- `sequences.ts` — `AttrSequence` (per-attribute sequence counters)
+- `errors.ts` — `UnknownResourceError`, `UnknownPrototypeError`, `DependencyCycleError`, `MissingDependencyResultError`, `MissingDependencyFieldError`, `DynamicEvaluationError`, `CreateFailureError`
 
 ### ports/
 
@@ -34,16 +37,15 @@ Abstract interfaces that define extension points:
 
 Orchestration logic that composes domain and ports:
 
-- `planner.ts` — topological sort of prototype refs (`orderRefs`, `collectRequestedRefs`)
-- `executor.ts` — serial execution loop (`execute`)
-- `materialize-scenario.ts` — re-export of domain's `materializeScenario`
+- `planner.ts` — topological sort of prototype refs (`orderRefs`, `collectRequestedRefs`), recognizes `depField` refs as dependencies, throws `DependencyCycleError`
+- `executor.ts` — async serial execution loop (`execute`), resolves `ref`, `depField`, and `dynamic` tagged values, wraps failures in typed errors
 
 ### adapters/memory/
 
 Default in-memory implementations of all ports:
 
 - `MemoryPrototypeStore` — wraps a catalog for handle lookup
-- `MemoryCreateAdapter` — delegates to user-supplied create handlers or generates default records
+- `MemoryCreateAdapter` — delegates to user-supplied create handlers or generates default records, auto-populates `inserted_at`/`updated_at` via `ClockPort`
 - `MemorySequenceAdapter` — generates `resource:prototype:N` IDs
 - `MemoryClockAdapter` — returns `new Date()`
 
@@ -53,7 +55,7 @@ Composition root that wires adapters through the application layer:
 
 - `prototypes.ts` — re-exports `ref`, `definePrototypes`, `defineCatalog`
 - `scenarios.ts` — re-exports `defineScenario`, `materializeScenario`
-- `registry.ts` — `createRegistry()` factory and `Registry` class
+- `registry.ts` — `createRegistry()` factory and `Registry` class (includes `resetSequences()`, `runCtx` support)
 - `results.ts` — re-exports `RunResult`, `resolveField`
 
 ## Import Dependency Rules
