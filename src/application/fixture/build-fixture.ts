@@ -1,11 +1,8 @@
-import type { PrototypeHandle, PrototypeRef, ResourceKey } from "../../domain/types.js";
+import type { PrototypeHandle, PrototypeRef } from "../../domain/types.js";
 import type { DynamicValue } from "../../domain/runtime-values.js";
-import type { CreateContext } from "../../ports/create-port.js";
-import type { ResultRecord } from "../../domain/results.js";
-import type { FixtureRegistryPort } from "../../ports/fixture-registry-port.js";
+import type { FixtureCreateHandler, FixtureRegistryPort } from "../../ports/fixture-registry-port.js";
 import { FIXTURE_REGISTRY } from "../../ports/fixture-registry-port.js";
 import type { FixtureSchema } from "./schema.js";
-import { ref } from "../../domain/refs.js";
 import { dynamic } from "../../domain/runtime-values.js";
 import {
   FixtureNotBuiltError,
@@ -15,12 +12,10 @@ import {
 } from "../../domain/errors.js";
 import { DYNAMIC_PLACEHOLDER, REF_PREFIX, parseFixtureKey } from "./schema.js";
 
-type CreateHandler = (context: CreateContext) => ResultRecord | Promise<ResultRecord>;
-
 export class Fixture {
   readonly #schema: FixtureSchema;
   readonly #dynamics = new Map<string, Map<string, DynamicValue["fn"]>>();
-  readonly #createHandlers = new Map<string, CreateHandler>();
+  readonly #createHandlers = new Map<string, FixtureCreateHandler>();
   readonly #handles = new Map<string, PrototypeHandle>();
   #compiled = false;
   #registered = false;
@@ -46,15 +41,13 @@ export class Fixture {
 
   addDynamic(protoRef: PrototypeRef, attr: string, fn: DynamicValue["fn"]): void {
     const key = `${protoRef.resource}:${protoRef.prototype}`;
-    let byAttr = this.#dynamics.get(key);
-    if (!byAttr) {
-      byAttr = new Map();
-      this.#dynamics.set(key, byAttr);
+    if (!this.#dynamics.has(key)) {
+      this.#dynamics.set(key, new Map());
     }
-    byAttr.set(attr, fn);
+    this.#dynamics.get(key)!.set(attr, fn);
   }
 
-  addCreate(resource: string, fn: CreateHandler): void {
+  addCreate(resource: string, fn: FixtureCreateHandler): void {
     this.#createHandlers.set(resource, fn);
   }
 
@@ -71,9 +64,8 @@ export class Fixture {
       const compiledAttrs: Record<string, unknown> = {};
 
       for (const [attr, value] of Object.entries(proto.attrs)) {
-        if (typeof value === "string" && value === DYNAMIC_PLACEHOLDER) {
-          const dynFns = this.#dynamics.get(key);
-          const fn = dynFns?.get(attr);
+        if (value === DYNAMIC_PLACEHOLDER) {
+          const fn = this.#dynamics.get(key)?.get(attr);
           if (!fn) {
             throw new FixtureUnboundDynamicError(key, attr);
           }
@@ -83,8 +75,7 @@ export class Fixture {
           if (!keySet.has(refKey)) {
             throw new FixtureParseError(`attr "${attr}" references unknown prototype "${refKey}" (not found in fixture)`);
           }
-          const depRef = parseFixtureKey(refKey);
-          compiledAttrs[attr] = ref(depRef.resource as ResourceKey, depRef.prototype);
+          compiledAttrs[attr] = parseFixtureKey(refKey);
         } else {
           compiledAttrs[attr] = value;
         }
@@ -121,28 +112,16 @@ export class Fixture {
     }
 
     for (const [resource, fn] of this.#createHandlers) {
-      const wrappedFn: CreateHandler = (ctx) => fn({ ...ctx, input: ctx.attrs } as any);
-      port.registerCreateHandler(resource, wrappedFn);
+      port.registerCreateHandler(resource, fn);
     }
 
     this.#registered = true;
   }
 
-  get hasDynamicPlaceholders(): boolean {
-    for (const proto of Object.values(this.#schema.prototypes)) {
-      for (const value of Object.values(proto.attrs)) {
-        if (typeof value === "string" && value === DYNAMIC_PLACEHOLDER) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
   get hasRuntimePlaceholders(): boolean {
     for (const proto of Object.values(this.#schema.prototypes)) {
       for (const value of Object.values(proto.attrs)) {
-        if (typeof value === "string" && (value === DYNAMIC_PLACEHOLDER || value.startsWith(REF_PREFIX))) {
+        if (value === DYNAMIC_PLACEHOLDER || (typeof value === "string" && value.startsWith(REF_PREFIX))) {
           return true;
         }
       }

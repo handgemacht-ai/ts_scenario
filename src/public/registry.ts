@@ -4,9 +4,8 @@ import { materializeScenario, mergeScenarioPrototypeMaps } from "../domain/scena
 import { AttrSequence } from "../domain/sequences.js";
 import { UnknownResourceError } from "../domain/errors.js";
 import { isRunEntry, toResultKey } from "../domain/refs.js";
-import type { PrototypeStorePort } from "../ports/prototype-store-port.js";
-import type { CreatePort, CreateContext, RunMode } from "../ports/create-port.js";
-import type { ResultRecord, RunResult } from "../domain/results.js";
+import type { RunMode } from "../ports/create-port.js";
+import type { RunResult } from "../domain/results.js";
 import { MemoryPrototypeStore } from "../adapters/memory/prototype-store.js";
 import { MemoryCreateAdapter, type CreateHandlers } from "../adapters/memory/create-adapter.js";
 import { MemorySequenceAdapter } from "../adapters/memory/sequence-adapter.js";
@@ -48,12 +47,8 @@ export class Registry<Catalog extends CatalogShape> {
     this.#attrSequence = new AttrSequence();
 
     this[FIXTURE_REGISTRY] = {
-      registerPrototype: (handle: PrototypeHandle) => {
-        this.#store.register(handle);
-      },
-      registerCreateHandler: (resource: string, fn: (ctx: CreateContext) => ResultRecord | Promise<ResultRecord>) => {
-        this.#createAdapter.registerHandler(resource, fn);
-      },
+      registerPrototype: (handle) => this.#store.register(handle),
+      registerCreateHandler: (resource, fn) => this.#createAdapter.registerHandler(resource, fn),
     };
   }
 
