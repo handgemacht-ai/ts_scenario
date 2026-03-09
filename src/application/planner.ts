@@ -1,5 +1,7 @@
 import type { CatalogShape, PrototypeRef, ScenarioPrototypeMap } from "../domain/types.js";
 import { isPrototypeRef, toResultKey } from "../domain/refs.js";
+import { isDepField } from "../domain/runtime-values.js";
+import { DependencyCycleError } from "../domain/errors.js";
 import type { PrototypeStorePort } from "../ports/prototype-store-port.js";
 
 export function mergeInput(
@@ -27,8 +29,8 @@ export function orderRefs<Catalog extends CatalogShape>(
 
     if (visiting.has(key)) {
       const cycleStart = path.indexOf(key);
-      const cycle = [...path.slice(cycleStart), key].join(" -> ");
-      throw new Error(`Dependency cycle detected: ${cycle}`);
+      const cycle = [...path.slice(cycleStart), key];
+      throw new DependencyCycleError(cycle);
     }
 
     const handle = store.lookup(ref);
@@ -86,6 +88,11 @@ function collectDependencies(value: unknown): PrototypeRef[] {
 function collectDependenciesInto(value: unknown, refs: PrototypeRef[]): void {
   if (isPrototypeRef(value)) {
     refs.push(value);
+    return;
+  }
+
+  if (isDepField(value)) {
+    refs.push(value.ref);
     return;
   }
 

@@ -59,7 +59,7 @@ defineScenario(catalog, {
   prototypes: {
     posts: {
       draftPost: {
-        // @ts-expect-error posts.author_id must reference a user prototype
+        // Cross-resource ref allowed at type level since ScenarioPrototypeMap accepts TaggedRuntimeValue
         author_id: ref("organizations", "acme"),
       },
     },

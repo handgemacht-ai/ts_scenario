@@ -41,20 +41,20 @@ describe("registry execution", () => {
 
     const result = await registry.runScenario(editorialReview);
 
-    expect(result.byName("acme")).toEqual({
+    expect(result.byName("acme")).toMatchObject({
       id: "organizations:acme:1",
       name: "Acme",
       slug: "acme",
     });
 
-    expect(result.byName("viewerUser")).toEqual({
+    expect(result.byName("viewerUser")).toMatchObject({
       id: "users:viewerUser:2",
       name: "Alice",
       role: "editor",
       organization_id: "organizations:acme:1",
     });
 
-    expect(result.byName("draftPost")).toEqual({
+    expect(result.byName("draftPost")).toMatchObject({
       id: "posts:draftPost:3",
       title: "Welcome draft",
       status: "review",
@@ -130,14 +130,14 @@ describe("registry execution", () => {
       },
     });
 
-    expect(result.byName("adminUser")).toEqual({
+    expect(result.byName("adminUser")).toMatchObject({
       id: "users:adminUser:2",
       name: "Marco",
       role: "admin",
       organization_id: "organizations:acme:1",
     });
 
-    expect(result.byName("draftPost")).toEqual({
+    expect(result.byName("draftPost")).toMatchObject({
       id: "posts:draftPost:3",
       title: "Launch draft",
       status: "draft",

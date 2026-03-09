@@ -1,5 +1,5 @@
 import type { CatalogShape, PrototypeHandle, PrototypeRef } from "../../domain/types.js";
-import { toResultKey } from "../../domain/refs.js";
+import { UnknownResourceError, UnknownPrototypeError } from "../../domain/errors.js";
 import type { PrototypeStorePort } from "../../ports/prototype-store-port.js";
 
 export class MemoryPrototypeStore<Catalog extends CatalogShape> implements PrototypeStorePort {
@@ -12,12 +12,12 @@ export class MemoryPrototypeStore<Catalog extends CatalogShape> implements Proto
   lookup(ref: PrototypeRef): PrototypeHandle {
     const byResource = this.#catalog[ref.resource];
     if (!byResource) {
-      throw new Error(`Unknown resource ${ref.resource}`);
+      throw new UnknownResourceError(ref.resource);
     }
 
     const handle = byResource[ref.prototype as keyof typeof byResource];
     if (!handle) {
-      throw new Error(`Unknown prototype ${toResultKey(ref)}`);
+      throw new UnknownPrototypeError(ref.resource, ref.prototype);
     }
 
     return handle;

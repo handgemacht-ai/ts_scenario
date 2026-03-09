@@ -10,6 +10,18 @@ export {
   resolveField,
   isPrototypeRef,
   toResultKey,
+  depField,
+  isDepField,
+  dynamic,
+  isDynamic,
+  AttrSequence,
+  UnknownResourceError,
+  UnknownPrototypeError,
+  DependencyCycleError,
+  MissingDependencyResultError,
+  MissingDependencyFieldError,
+  DynamicEvaluationError,
+  CreateFailureError,
 } from "./public/index.js";
 export type {
   CatalogShape,
@@ -29,4 +41,7 @@ export type {
   CreateContext,
   CreateHandlers,
   RunMode,
+  DepFieldValue,
+  DynamicValue,
+  DynamicContext,
 } from "./public/index.js";

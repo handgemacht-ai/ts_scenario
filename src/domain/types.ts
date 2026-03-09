@@ -47,9 +47,18 @@ export type PrototypeCollection<
 
 export type CatalogShape = Record<string, Record<string, PrototypeHandle<any, any>>>;
 
+export type RuntimeOverride<Input> = {
+  [K in keyof Input]?: Input[K] | TaggedRuntimeValue;
+};
+
+export type TaggedRuntimeValue =
+  | { readonly $kind: "dep-field" }
+  | { readonly $kind: "dynamic-value" }
+  | { readonly $kind: "prototype-ref" };
+
 export type ScenarioPrototypeMap<Catalog extends CatalogShape> = {
   [Resource in keyof Catalog]?: {
-    [Name in keyof Catalog[Resource]]?: Partial<
+    [Name in keyof Catalog[Resource]]?: RuntimeOverride<
       ResourceInput<Extract<Resource, ResourceKey>>
     >;
   };
