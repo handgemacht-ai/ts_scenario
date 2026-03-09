@@ -99,7 +99,7 @@ export class FixtureNotBuiltError extends Error {
   readonly key: string;
 
   constructor(key: string) {
-    super(`Fixture instance "${key}" accessed before build() was called`);
+    super(`Fixture instance "${key}" accessed before compile() or build() was called`);
     this.name = "FixtureNotBuiltError";
     this.key = key;
   }
