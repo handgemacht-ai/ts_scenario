@@ -55,7 +55,7 @@ describe("create precedence chain", () => {
     });
 
     // At minimum, override-level create should beat resource-level
-    const org = result.byName("acme");
+    const org = result.byName("acme")!;
     expect(org.id).toBe("from-override-create");
   });
 
@@ -94,7 +94,7 @@ describe("create precedence chain", () => {
     });
 
     const result = await registry.runScenario(scenario);
-    const org = result.byName("acme");
+    const org = result.byName("acme")!;
     expect(org.id).toBe("from-prototype-create");
   });
 
@@ -116,7 +116,7 @@ describe("create precedence chain", () => {
     });
 
     const result = await registry.runScenario(scenario);
-    const org = result.byName("acme");
+    const org = result.byName("acme")!;
     expect(org.id).toBe("from-resource-handler");
   });
 });

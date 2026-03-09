@@ -86,7 +86,7 @@ describe("entry() wrapper", () => {
       entry(catalog.organizations.acme, { slug: "entry-acme" }),
     ]);
 
-    const org = result.byName("acme");
+    const org = result.byName("acme")!;
     expect(org.slug).toBe("entry-acme");
   });
 

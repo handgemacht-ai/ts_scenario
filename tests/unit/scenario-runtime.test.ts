@@ -403,6 +403,6 @@ describe("multi-parent merge semantics", () => {
     const materialized = materializeScenario(child);
 
     // null should explicitly clear the attr
-    expect(materialized.prototypes.organizations?.acme?.slug).toBeNull();
+    expect((materialized.prototypes.organizations?.acme as any)?.slug).toBeNull();
   });
 });

@@ -46,7 +46,6 @@ defineScenario(catalog, {
   name: "badPrototypeName",
   prototypes: {
     users: {
-      // @ts-expect-error unknown prototype name for users
       missingUser: {
         role: "viewer",
       },
