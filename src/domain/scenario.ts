@@ -44,7 +44,6 @@ export function materializeScenario<Catalog extends CatalogShape>(
 
   return {
     ...scenario,
-    extends: scenario.extends,
     prototypes: mergeScenarioPrototypeMaps(mergedParents, scenario.prototypes),
   };
 }

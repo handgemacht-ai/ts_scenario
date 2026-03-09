@@ -56,28 +56,24 @@ export class DynamicEvaluationError extends Error {
   readonly resource: string;
   readonly prototype: string;
   readonly attr: string;
-  override readonly cause: unknown;
 
   constructor(resource: string, prototype: string, attr: string, cause: unknown) {
-    super(`Dynamic evaluation failed for ${resource}.${prototype}.${attr}`);
+    super(`Dynamic evaluation failed for ${resource}.${prototype}.${attr}`, { cause });
     this.name = "DynamicEvaluationError";
     this.resource = resource;
     this.prototype = prototype;
     this.attr = attr;
-    this.cause = cause;
   }
 }
 
 export class CreateFailureError extends Error {
   readonly resource: string;
   readonly prototype: string;
-  override readonly cause: unknown;
 
   constructor(resource: string, prototype: string, cause: unknown) {
-    super(`Create failed for ${resource}:${prototype}`);
+    super(`Create failed for ${resource}:${prototype}`, { cause });
     this.name = "CreateFailureError";
     this.resource = resource;
     this.prototype = prototype;
-    this.cause = cause;
   }
 }

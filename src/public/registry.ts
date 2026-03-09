@@ -4,7 +4,7 @@ import { materializeScenario, mergeScenarioPrototypeMaps } from "../domain/scena
 import { AttrSequence } from "../domain/sequences.js";
 import type { PrototypeStorePort } from "../ports/prototype-store-port.js";
 import type { CreatePort, RunMode } from "../ports/create-port.js";
-import { RunResult } from "../domain/results.js";
+import type { RunResult } from "../domain/results.js";
 import { MemoryPrototypeStore } from "../adapters/memory/prototype-store.js";
 import { MemoryCreateAdapter, type CreateHandlers } from "../adapters/memory/create-adapter.js";
 import { MemorySequenceAdapter } from "../adapters/memory/sequence-adapter.js";
@@ -48,7 +48,7 @@ export class Registry<Catalog extends CatalogShape> {
     entries: Array<PrototypeHandle | PrototypeRef>,
     options: RunOptions<Catalog> = {},
   ): Promise<RunResult<Catalog>> {
-    const requested = entries.map((entry) => toPrototypeRef(entry));
+    const requested = entries.map(toPrototypeRef);
     return execute(
       this.#store,
       this.#createAdapter,
