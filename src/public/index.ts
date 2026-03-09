@@ -12,9 +12,15 @@ export {
   DynamicEvaluationError,
   CreateFailureError,
   ScenarioInheritanceCycleError,
+  FixtureParseError,
+  FixtureNotBuiltError,
+  FixtureUnknownKeyError,
+  FixtureUnboundDynamicError,
 } from "../domain/errors.js";
 export { prototype, override, entry } from "./wrappers.js";
 export { createRegistry } from "./registry.js";
+export { fixturegen } from "./fixturegen.js";
+export { Fixture } from "../application/fixture/build-fixture.js";
 export type {
   CatalogShape,
   Link,
@@ -38,3 +44,5 @@ export type { ResultRecord } from "../domain/results.js";
 export type { RunOptions } from "./registry.js";
 export type { CreateContext, RunMode } from "../ports/create-port.js";
 export type { CreateHandlers } from "../adapters/index.js";
+export type { FixtureRegistryPort, FixtureCreateHandler } from "../ports/fixture-registry-port.js";
+export type { FixtureSchema, FixturePrototype } from "../application/fixture/schema.js";

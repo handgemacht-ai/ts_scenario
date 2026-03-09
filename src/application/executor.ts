@@ -88,6 +88,7 @@ export async function execute<Catalog extends CatalogShape>(
       prototype: ref.prototype,
       mode,
       attrs: finalAttrs,
+      input: finalAttrs,
       runCtx: ctx,
       results,
       action: mergedMeta.action,
@@ -201,6 +202,7 @@ async function resolveRuntimeValues(
         ref: ctx.ref,
         attr,
         seqIndex,
+        seq: seqIndex,
         results: ctx.results,
         runCtx: ctx.runCtx,
       });

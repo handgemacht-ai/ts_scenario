@@ -87,3 +87,42 @@ export class ScenarioInheritanceCycleError extends Error {
     this.cycle = cycle;
   }
 }
+
+export class FixtureParseError extends Error {
+  constructor(message: string, cause?: unknown) {
+    super(`Fixture parse error: ${message}`, cause ? { cause } : undefined);
+    this.name = "FixtureParseError";
+  }
+}
+
+export class FixtureNotBuiltError extends Error {
+  readonly key: string;
+
+  constructor(key: string) {
+    super(`Fixture instance "${key}" accessed before build() was called`);
+    this.name = "FixtureNotBuiltError";
+    this.key = key;
+  }
+}
+
+export class FixtureUnknownKeyError extends Error {
+  readonly key: string;
+
+  constructor(key: string) {
+    super(`Unknown fixture key: ${key}`);
+    this.name = "FixtureUnknownKeyError";
+    this.key = key;
+  }
+}
+
+export class FixtureUnboundDynamicError extends Error {
+  readonly key: string;
+  readonly attr: string;
+
+  constructor(key: string, attr: string) {
+    super(`Unbound $dynamic placeholder for "${attr}" on fixture "${key}"`);
+    this.name = "FixtureUnboundDynamicError";
+    this.key = key;
+    this.attr = attr;
+  }
+}

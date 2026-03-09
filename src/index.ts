@@ -26,9 +26,15 @@ export {
   DynamicEvaluationError,
   CreateFailureError,
   ScenarioInheritanceCycleError,
+  FixtureParseError,
+  FixtureNotBuiltError,
+  FixtureUnknownKeyError,
+  FixtureUnboundDynamicError,
   prototype,
   override,
   entry,
+  fixturegen,
+  Fixture,
 } from "./public/index.js";
 export type {
   CatalogShape,
@@ -55,4 +61,8 @@ export type {
   DepFieldValue,
   DynamicValue,
   DynamicContext,
+  FixtureRegistryPort,
+  FixtureCreateHandler,
+  FixtureSchema,
+  FixturePrototype,
 } from "./public/index.js";

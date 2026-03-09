@@ -29,6 +29,8 @@ export interface DynamicContext {
   ref: PrototypeRef;
   attr: string;
   seqIndex: number;
+  /** Alias for seqIndex — used by fixture dynamic bindings */
+  seq: number;
   results: RunResult<CatalogShape>;
   runCtx: Record<string, unknown>;
 }

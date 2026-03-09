@@ -10,6 +10,8 @@ export interface CreateContext {
   readonly prototype: string;
   readonly mode: RunMode;
   readonly attrs: ResultRecord;
+  /** Alias for attrs — used by fixture create handlers */
+  readonly input: ResultRecord;
   readonly runCtx: Record<string, unknown>;
   readonly results: RunResult<CatalogShape>;
   readonly action: string | undefined;

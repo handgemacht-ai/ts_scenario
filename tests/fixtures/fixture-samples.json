@@ -1,0 +1,22 @@
+{
+  "prototypes": {
+    "organizations:default": {
+      "attrs": { "name": "Acme", "slug": "acme" }
+    },
+    "users:default": {
+      "attrs": {
+        "name": "Alice",
+        "role": "viewer",
+        "organization_id": "$ref:organizations:default"
+      }
+    },
+    "posts:default": {
+      "attrs": {
+        "title": "Welcome",
+        "status": "draft",
+        "author_id": "$ref:users:default",
+        "organization_id": "$ref:organizations:default"
+      }
+    }
+  }
+}

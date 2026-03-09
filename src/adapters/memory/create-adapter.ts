@@ -10,6 +10,7 @@ export type CreateHandlers<Catalog extends CatalogShape> = Partial<
 
 export class MemoryCreateAdapter<Catalog extends CatalogShape> implements CreatePort {
   readonly #handlers: CreateHandlers<Catalog>;
+  readonly #extraHandlers = new Map<string, (context: CreateContext) => ResultRecord | Promise<ResultRecord>>();
   readonly #sequence: SequencePort;
   readonly #clock: ClockPort;
 
@@ -19,13 +20,20 @@ export class MemoryCreateAdapter<Catalog extends CatalogShape> implements Create
     this.#clock = clock;
   }
 
+  registerHandler(resource: string, fn: (context: CreateContext) => ResultRecord | Promise<ResultRecord>): void {
+    this.#extraHandlers.set(resource, fn);
+  }
+
   async create(context: CreateContext): Promise<ResultRecord> {
     const customCreate = context.create;
     const handler = this.#handlers[context.resource as Extract<keyof Catalog, string>];
+    const extraHandler = this.#extraHandlers.get(context.resource);
 
     let record: ResultRecord;
     if (customCreate) {
       record = await customCreate(context);
+    } else if (extraHandler) {
+      record = await extraHandler(context);
     } else if (handler) {
       record = await handler(context);
     } else {
