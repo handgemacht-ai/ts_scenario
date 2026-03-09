@@ -18,4 +18,4 @@ export type { ScenarioDefinition } from "../domain/scenario.js";
 export type { ResultRecord } from "../domain/results.js";
 export type { RunOptions } from "./registry.js";
 export type { CreateContext, RunMode } from "../ports/create-port.js";
-export type { CreateHandlers } from "../adapters/memory/create-adapter.js";
+export type { CreateHandlers } from "../adapters/index.js";

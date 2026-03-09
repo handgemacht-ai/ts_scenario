@@ -1,7 +1,8 @@
 import type { CatalogShape, PrototypeHandle, PrototypeRef, ScenarioPrototypeMap } from "../domain/types.js";
 import type { ScenarioDefinition } from "../domain/scenario.js";
 import { materializeScenario, mergeScenarioPrototypeMaps } from "../domain/scenario.js";
-import type { RunMode } from "../ports/create-port.js";
+import type { PrototypeStorePort } from "../ports/prototype-store-port.js";
+import type { CreatePort, RunMode } from "../ports/create-port.js";
 import { RunResult } from "../domain/results.js";
 import { MemoryPrototypeStore } from "../adapters/memory/prototype-store.js";
 import { MemoryCreateAdapter, type CreateHandlers } from "../adapters/memory/create-adapter.js";
@@ -24,8 +25,8 @@ export function createRegistry<Catalog extends CatalogShape>(
 }
 
 export class Registry<Catalog extends CatalogShape> {
-  readonly #store: MemoryPrototypeStore<Catalog>;
-  readonly #createAdapter: MemoryCreateAdapter<Catalog>;
+  readonly #store: PrototypeStorePort;
+  readonly #createAdapter: CreatePort;
 
   constructor(catalog: Catalog, createHandlers: CreateHandlers<Catalog>) {
     this.#store = new MemoryPrototypeStore(catalog);
