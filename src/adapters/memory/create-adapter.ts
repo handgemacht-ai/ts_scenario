@@ -1,7 +1,6 @@
 import type { CatalogShape, PrototypeRef } from "../../domain/types.js";
-import { resolveField } from "../../domain/results.js";
-import type { ResultRecord } from "../../domain/results.js";
-import type { CreatePort, CreateContext } from "../../ports/create-port.js";
+import { resolveField, type ResultRecord } from "../../domain/results.js";
+import type { CreateContext, CreatePort } from "../../ports/create-port.js";
 import type { SequencePort } from "../../ports/sequence-port.js";
 
 export type CreateHandlers<Catalog extends CatalogShape> = Partial<

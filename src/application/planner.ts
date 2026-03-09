@@ -2,6 +2,13 @@ import type { CatalogShape, PrototypeRef, ScenarioPrototypeMap } from "../domain
 import { isPrototypeRef, toResultKey } from "../domain/refs.js";
 import type { PrototypeStorePort } from "../ports/prototype-store-port.js";
 
+export function mergeInput(
+  base: Readonly<Record<string, unknown>>,
+  override: Record<string, unknown> | undefined,
+): Record<string, unknown> {
+  return { ...base, ...override };
+}
+
 export function orderRefs<Catalog extends CatalogShape>(
   store: PrototypeStorePort,
   requested: PrototypeRef[],
@@ -68,16 +75,6 @@ export function collectRequestedRefs<Catalog extends CatalogShape>(
   }
 
   return refs;
-}
-
-function mergeInput(
-  base: Readonly<Record<string, unknown>>,
-  override: Record<string, unknown> | undefined,
-): Record<string, unknown> {
-  return {
-    ...base,
-    ...(override ?? {}),
-  };
 }
 
 function collectDependencies(value: unknown): PrototypeRef[] {

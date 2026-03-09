@@ -1,10 +1,9 @@
 import type { CatalogShape, PrototypeRef, ScenarioPrototypeMap } from "../domain/types.js";
-import { isPrototypeRef } from "../domain/refs.js";
+import { isPrototypeRef, toResultKey } from "../domain/refs.js";
 import { RunResult, type ResultRecord } from "../domain/results.js";
-import { toResultKey } from "../domain/refs.js";
 import type { PrototypeStorePort } from "../ports/prototype-store-port.js";
 import type { CreatePort, RunMode } from "../ports/create-port.js";
-import { orderRefs } from "./planner.js";
+import { mergeInput, orderRefs } from "./planner.js";
 
 export async function execute<Catalog extends CatalogShape>(
   store: PrototypeStorePort,
@@ -30,16 +29,6 @@ export async function execute<Catalog extends CatalogShape>(
   }
 
   return results;
-}
-
-function mergeInput(
-  base: Readonly<Record<string, unknown>>,
-  override: Record<string, unknown> | undefined,
-): ResultRecord {
-  return {
-    ...base,
-    ...(override ?? {}),
-  };
 }
 
 function resolveRuntimeValues<Catalog extends CatalogShape>(

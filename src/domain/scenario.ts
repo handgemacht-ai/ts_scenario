@@ -60,7 +60,7 @@ function normalizeExtends<Catalog extends CatalogShape>(
   }
 
   if (Array.isArray(value)) {
-    return [...value];
+    return value;
   }
 
   return [value as ScenarioDefinition<Catalog, string>];
@@ -81,10 +81,7 @@ export function mergeScenarioPrototypeMaps<Catalog extends CatalogShape>(
       ...Object.fromEntries(
         Object.entries(rightResource).map(([name, override]) => {
           const previous = (leftResource as Record<string, object | undefined>)[name] ?? {};
-          return [
-            name,
-            { ...previous, ...(override as Record<string, unknown> | undefined) },
-          ];
+          return [name, { ...previous, ...(override as Record<string, unknown>) }];
         }),
       ),
     } as ScenarioPrototypeMap<Catalog>[typeof resource];

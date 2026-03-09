@@ -2,7 +2,6 @@ import type { CatalogShape, PrototypeHandle, PrototypeRef, ScenarioPrototypeMap 
 import type { ScenarioDefinition } from "../domain/scenario.js";
 import { materializeScenario, mergeScenarioPrototypeMaps } from "../domain/scenario.js";
 import type { RunMode } from "../ports/create-port.js";
-import type { ResultRecord } from "../domain/results.js";
 import { RunResult } from "../domain/results.js";
 import { MemoryPrototypeStore } from "../adapters/memory/prototype-store.js";
 import { MemoryCreateAdapter, type CreateHandlers } from "../adapters/memory/create-adapter.js";
@@ -13,13 +12,6 @@ import { collectRequestedRefs } from "../application/planner.js";
 export interface RunOptions<Catalog extends CatalogShape> {
   mode?: RunMode;
   overrides?: ScenarioPrototypeMap<Catalog>;
-}
-
-export interface CreateContext {
-  readonly resource: string;
-  readonly prototype: string;
-  readonly mode: RunMode;
-  readonly attrs: ResultRecord;
 }
 
 export function createRegistry<Catalog extends CatalogShape>(
@@ -77,5 +69,8 @@ export class Registry<Catalog extends CatalogShape> {
 }
 
 function toPrototypeRef(target: PrototypeHandle | PrototypeRef): PrototypeRef {
-  return "prototype" in target ? target : target.ref;
+  if (target.$kind === "prototype-ref") {
+    return target;
+  }
+  return target.ref;
 }

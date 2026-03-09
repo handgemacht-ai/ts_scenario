@@ -47,11 +47,11 @@ export function isPrototypeRef(value: unknown): value is PrototypeRef {
   return (
     typeof value === "object" &&
     value !== null &&
-    "$kind" in value &&
-    (value as { $kind?: unknown }).$kind === "prototype-ref"
+    (value as PrototypeRef).$kind === "prototype-ref"
   );
 }
 
 export function toResultKey(target: PrototypeHandle | PrototypeRef): string {
-  return `${target.resource}:${"prototype" in target ? target.prototype : target.name}`;
+  const name = target.$kind === "prototype-ref" ? target.prototype : target.name;
+  return `${target.resource}:${name}`;
 }
