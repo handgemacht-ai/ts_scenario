@@ -1,4 +1,4 @@
-export { defineCatalog, definePrototypes, ref } from "../domain/refs.js";
+export { defineCatalog, definePrototypes, ref, isPrototypeRef, toResultKey } from "../domain/refs.js";
 export { RunResult, resolveField } from "../domain/results.js";
 export { defineScenario, materializeScenario, mergeScenarioPrototypeMaps } from "../domain/scenario.js";
 export { createRegistry } from "./registry.js";
@@ -8,6 +8,7 @@ export type {
   PrototypeCollection,
   PrototypeHandle,
   PrototypeRef,
+  ResourceDefinition,
   ResourceInput,
   ResourceKey,
   ResourceRecord,

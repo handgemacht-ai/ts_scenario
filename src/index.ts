@@ -8,6 +8,8 @@ export {
   createRegistry,
   RunResult,
   resolveField,
+  isPrototypeRef,
+  toResultKey,
 } from "./public/index.js";
 export type {
   CatalogShape,
@@ -15,6 +17,7 @@ export type {
   PrototypeCollection,
   PrototypeHandle,
   PrototypeRef,
+  ResourceDefinition,
   ResourceInput,
   ResourceKey,
   ResourceRecord,
