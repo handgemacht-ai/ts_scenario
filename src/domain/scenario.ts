@@ -1,5 +1,6 @@
-import type { CatalogShape, ScenarioPrototypeMap } from "./types.js";
+import type { CatalogShape, MetadataOptions, OverrideSpec, ScenarioPrototypeMap } from "./types.js";
 import { ScenarioInheritanceCycleError } from "./errors.js";
+import { isOverrideSpec } from "./refs.js";
 
 export interface ScenarioDefinition<
   Catalog extends CatalogShape,
@@ -98,11 +99,60 @@ export function mergeScenarioPrototypeMaps<Catalog extends CatalogShape>(
       ...Object.fromEntries(
         Object.entries(rightResource).map(([name, override]) => {
           const previous = (leftResource as Record<string, object | undefined>)[name] ?? {};
-          return [name, { ...previous, ...(override as Record<string, unknown>) }];
+          return [name, mergeOverrideValues(previous, override as Record<string, unknown>)];
         }),
       ),
     } as ScenarioPrototypeMap<Catalog>[typeof resource];
   }
 
   return merged;
+}
+
+function mergeOverrideValues(
+  left: object,
+  right: Record<string, unknown>,
+): Record<string, unknown> | OverrideSpec {
+  const leftIsSpec = isOverrideSpec(left);
+  const rightIsSpec = isOverrideSpec(right);
+
+  if (leftIsSpec && rightIsSpec) {
+    return {
+      $kind: "override-spec" as const,
+      attrs: { ...left.attrs, ...right.attrs },
+      options: mergeOptions(left.options, right.options),
+    };
+  }
+
+  if (rightIsSpec) {
+    return {
+      $kind: "override-spec" as const,
+      attrs: { ...(left as Record<string, unknown>), ...right.attrs },
+      options: right.options,
+    };
+  }
+
+  if (leftIsSpec) {
+    return {
+      $kind: "override-spec" as const,
+      attrs: { ...left.attrs, ...right },
+      options: left.options,
+    };
+  }
+
+  return { ...(left as Record<string, unknown>), ...right };
+}
+
+function mergeOptions(
+  left: MetadataOptions,
+  right: MetadataOptions,
+): MetadataOptions {
+  const result: Record<string, unknown> = {};
+  for (const source of [left, right]) {
+    for (const [key, value] of Object.entries(source)) {
+      if (value !== undefined) {
+        result[key] = value;
+      }
+    }
+  }
+  return result as MetadataOptions;
 }

@@ -124,6 +124,7 @@ export class Registry<Catalog extends CatalogShape> {
 
   async runAll(
     resource: Extract<keyof Catalog, string>,
+    options: RunOptions<Catalog> = {},
   ): Promise<RunResult<Catalog>> {
     const byResource = this.#catalog[resource];
     if (!byResource) {
@@ -140,9 +141,10 @@ export class Registry<Catalog extends CatalogShape> {
       this.#store,
       this.#createAdapter,
       refs,
-      {} as ScenarioPrototypeMap<Catalog>,
-      "persisted",
+      options.overrides ?? {} as ScenarioPrototypeMap<Catalog>,
+      options.mode ?? "persisted",
       this.#attrSequence,
+      options.runCtx,
     );
   }
 }
