@@ -24,7 +24,7 @@ export interface RunOptions<Catalog extends CatalogShape> {
 export function createRegistry<Catalog extends CatalogShape>(
   catalog: Catalog,
   options: {
-    create?: CreateHandlers<Catalog>;
+    create?: CreateHandlers;
   } = {},
 ): Registry<Catalog> {
   return new Registry(catalog, options.create ?? {});
@@ -32,13 +32,13 @@ export function createRegistry<Catalog extends CatalogShape>(
 
 export class Registry<Catalog extends CatalogShape> {
   readonly #store: MemoryPrototypeStore<Catalog>;
-  readonly #createAdapter: MemoryCreateAdapter<Catalog>;
+  readonly #createAdapter: MemoryCreateAdapter;
   readonly #attrSequence: AttrSequence;
   readonly #catalog: Catalog;
 
   readonly [FIXTURE_REGISTRY]: FixtureRegistryPort;
 
-  constructor(catalog: Catalog, createHandlers: CreateHandlers<Catalog>) {
+  constructor(catalog: Catalog, createHandlers: CreateHandlers) {
     this.#catalog = catalog;
     this.#store = new MemoryPrototypeStore(catalog);
     const sequence = new MemorySequenceAdapter();

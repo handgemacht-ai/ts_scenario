@@ -58,6 +58,7 @@ export type {
   ResultRecord,
   RunOptions,
   CreateContext,
+  TypedCreateContext,
   CreateHandlers,
   RunMode,
   DepFieldValue,

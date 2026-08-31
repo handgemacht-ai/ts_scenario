@@ -31,6 +31,15 @@ export type PrototypeRef<
 
 export type Link<R extends ResourceKey> = PrototypeRef<R, string>;
 
+/** The form of a resource input as a create handler sees it: every prototype-ref
+ * (`Link`) field has already been resolved by the executor to the dependency
+ * record's id, so those fields are typed `string` here; other fields pass through. */
+export type ResolvedAttr<Input> = {
+  [K in keyof Input]: Input[K] extends { $kind: "prototype-ref" } ? string : Input[K];
+};
+
+export type ResolvedInput<K extends ResourceKey> = ResolvedAttr<ResourceInput<K>>;
+
 export interface PrototypeHandle<
   R extends ResourceKey = ResourceKey,
   N extends string = string,

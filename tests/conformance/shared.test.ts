@@ -16,7 +16,7 @@ import {
   DependencyCycleError,
   ScenarioInheritanceCycleError,
 } from "../../src/index.js";
-import type { CreateContext } from "../../src/index.js";
+import type { CreateContext, TypedCreateContext } from "../../src/index.js";
 import "../fixtures/schema.js";
 import { catalog, organizations, users, posts } from "../fixtures/prototypes.js";
 
@@ -269,7 +269,7 @@ describe("create precedence", () => {
           acme: override(
             {},
             {
-              create: ({ attrs }: CreateContext) => ({
+              create: ({ attrs }) => ({
                 id: "from-override",
                 ...attrs,
               }),
@@ -288,7 +288,7 @@ describe("create precedence", () => {
 
 describe("actor and authorize handling", () => {
   it("resolves actor ref and sets authorize to true", async () => {
-    let capturedCtx: CreateContext | undefined;
+    let capturedCtx: TypedCreateContext<any> | undefined;
     const registry = createRegistry(catalog, {
       create: {
         users: (ctx) => {
@@ -318,7 +318,7 @@ describe("actor and authorize handling", () => {
 
 describe("tenantFrom extraction", () => {
   it("extracts tenant from resolved attr", async () => {
-    let capturedCtx: CreateContext | undefined;
+    let capturedCtx: TypedCreateContext<any> | undefined;
     const registry = createRegistry(catalog, {
       create: {
         users: (ctx) => {

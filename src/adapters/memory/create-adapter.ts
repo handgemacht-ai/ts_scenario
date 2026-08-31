@@ -1,20 +1,22 @@
-import type { CatalogShape } from "../../domain/types.js";
+import type { ResourceKey } from "../../domain/types.js";
 import { resolveField, type ResultRecord } from "../../domain/results.js";
-import type { CreateContext, CreatePort } from "../../ports/create-port.js";
+import type { CreateContext, CreatePort, TypedCreateContext } from "../../ports/create-port.js";
 import type { SequencePort } from "../../ports/sequence-port.js";
 import type { ClockPort } from "../../ports/clock-port.js";
 
-export type CreateHandlers<Catalog extends CatalogShape> = Partial<
-  Record<Extract<keyof Catalog, string>, (context: CreateContext) => ResultRecord | Promise<ResultRecord>>
->;
+export type CreateHandlers = {
+  [R in Extract<ResourceKey, string>]?: (
+    context: TypedCreateContext<R>,
+  ) => ResultRecord | Promise<ResultRecord>;
+};
 
-export class MemoryCreateAdapter<Catalog extends CatalogShape> implements CreatePort {
-  readonly #handlers: CreateHandlers<Catalog>;
+export class MemoryCreateAdapter implements CreatePort {
+  readonly #handlers: CreateHandlers;
   readonly #extraHandlers = new Map<string, (context: CreateContext) => ResultRecord | Promise<ResultRecord>>();
   readonly #sequence: SequencePort;
   readonly #clock: ClockPort;
 
-  constructor(handlers: CreateHandlers<Catalog>, sequence: SequencePort, clock: ClockPort) {
+  constructor(handlers: CreateHandlers, sequence: SequencePort, clock: ClockPort) {
     this.#handlers = handlers;
     this.#sequence = sequence;
     this.#clock = clock;
@@ -26,7 +28,7 @@ export class MemoryCreateAdapter<Catalog extends CatalogShape> implements Create
 
   async create(context: CreateContext): Promise<ResultRecord> {
     const customCreate = context.create;
-    const handler = this.#handlers[context.resource as Extract<keyof Catalog, string>];
+    const handler = this.#handlers[context.resource as Extract<ResourceKey, string>];
     const extraHandler = this.#extraHandlers.get(context.resource);
 
     let record: ResultRecord;
@@ -35,7 +37,7 @@ export class MemoryCreateAdapter<Catalog extends CatalogShape> implements Create
     } else if (extraHandler) {
       record = await extraHandler(context);
     } else if (handler) {
-      record = await handler(context);
+      record = await (handler as (c: CreateContext) => ResultRecord | Promise<ResultRecord>)(context);
     } else {
       record = { id: this.#sequence.next(context.ref), ...context.attrs };
     }

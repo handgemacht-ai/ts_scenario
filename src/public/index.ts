@@ -45,7 +45,7 @@ export type { DepFieldValue, DynamicValue, DynamicContext } from "../domain/runt
 export type { ScenarioDefinition } from "../domain/scenario.js";
 export type { ResultRecord } from "../domain/results.js";
 export type { RunOptions } from "./registry.js";
-export type { CreateContext, RunMode } from "../ports/create-port.js";
+export type { CreateContext, TypedCreateContext, RunMode } from "../ports/create-port.js";
 export type { CreateHandlers } from "../adapters/index.js";
 export type { FixtureRegistryPort, FixtureCreateHandler } from "../ports/fixture-registry-port.js";
 export type { FixtureSchema, FixturePrototype } from "../application/fixture/schema.js";

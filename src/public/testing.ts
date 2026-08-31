@@ -5,7 +5,7 @@ import { createRegistry, type Registry, type RunOptions } from "./registry.js";
 
 function createMemoryRegistry<Catalog extends CatalogShape>(
   catalog: Catalog,
-  handlers?: { create?: CreateHandlers<Catalog> },
+  handlers?: { create?: CreateHandlers },
 ): Registry<Catalog> {
   const create = handlers?.create ?? buildDefaultHandlers<Catalog>(catalog);
   const registry = createRegistry(catalog, { create });
@@ -15,7 +15,7 @@ function createMemoryRegistry<Catalog extends CatalogShape>(
 
 function buildDefaultHandlers<Catalog extends CatalogShape>(
   catalog: Catalog,
-): CreateHandlers<Catalog> {
+): CreateHandlers {
   const handlers: Record<string, unknown> = {};
   for (const resource of Object.keys(catalog)) {
     handlers[resource] = ({ attrs }: { attrs: ResultRecord }) => ({
@@ -23,7 +23,7 @@ function buildDefaultHandlers<Catalog extends CatalogShape>(
       ...attrs,
     });
   }
-  return handlers as CreateHandlers<Catalog>;
+  return handlers as CreateHandlers;
 }
 
 async function runOrThrow<Catalog extends CatalogShape>(
