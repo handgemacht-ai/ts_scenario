@@ -9,6 +9,7 @@
     ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js", "require": "./dist/cjs/index.js" },
     "./seed": { "types": "./dist/public/seed.d.ts", "import": "./dist/public/seed.js", "require": "./dist/cjs/public/seed.js" },
     "./testing": { "types": "./dist/public/testing.d.ts", "import": "./dist/public/testing.js", "require": "./dist/cjs/public/testing.js" },
+    "./types": { "types": "./dist/domain/types.d.ts", "import": "./dist/domain/types.js", "require": "./dist/cjs/domain/types.js" },
     "./runtime/node": { "types": "./dist/runtime/node.d.ts", "import": "./dist/runtime/node.js", "require": "./dist/cjs/runtime/node.js" }
   },
   "files": ["dist", "LICENSE", "README.md"],
