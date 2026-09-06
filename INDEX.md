@@ -1,7 +1,7 @@
 ---
 type: index
 last_verified: 2026-09-06
-upstream_commit: 64be6f9
+upstream_commit: 5614a9d8acd3364d04e9efafae7a4d9906a0c981
 sources:
   - README.md
   - docs/development.md
