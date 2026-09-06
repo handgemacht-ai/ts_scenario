@@ -1,3 +1,12 @@
+---
+type: guidelines
+summary: Beads issue-tracking workflow, non-interactive shell command rules, and the session-completion (Landing the Plane) checklist for the ts_scenario rig.
+owner: ts_scenario
+status: current
+tags: [workflow, beads]
+last_verified: 2026-09-06
+---
+
 # Agent Instructions
 
 This project uses **bd** (beads) for issue tracking. Run `bd onboard` to get started.
@@ -119,7 +128,7 @@ bd automatically syncs with git:
 - ❌ Do NOT use external issue trackers
 - ❌ Do NOT duplicate tracking systems
 
-For more details, see README.md and docs/QUICKSTART.md.
+For more details, see README.md and docs/development.md.
 
 ## Landing the Plane (Session Completion)
 

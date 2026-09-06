@@ -31,4 +31,10 @@ src/
 ## Module Augmentation
 
 Resource types are declared via `TsScenarioResources` in `src/domain/types.ts`.
-Augmentation target: `declare module "path/to/src/domain/types.js"`.
+Augmentation target: the published `./types` subpath (package.json exports `"./types"` → `./dist/domain/types.js`), so consumers augment `TsScenarioResources` from another repo:
+
+```ts
+declare module "ts_scenario/types" {
+  // …add or override resource entries here
+}
+```

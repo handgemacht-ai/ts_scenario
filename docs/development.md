@@ -1,3 +1,12 @@
+---
+type: reference
+summary: Reference for the ts_scenario src/ module structure (domain, ports, application, adapters, public, runtime), import dependency rules, module augmentation, and test/typecheck commands.
+owner: ts_scenario
+status: current
+tags: [testing, docs]
+last_verified: 2026-09-06
+---
+
 # ts_scenario Development Guide
 
 ## Module Structure
@@ -17,7 +26,7 @@ src/
 Core types and logic with no external dependencies:
 
 - `types.ts` — `TsScenarioResources`, `ResourceKey`, `PrototypeRef`, `PrototypeHandle`, `CatalogShape`, `ScenarioPrototypeMap`, `RuntimeOverride`, `TaggedRuntimeValue`, `MetadataOptions`, `PrototypeSpec`, `OverrideSpec`, `RunEntry`
-- `refs.ts` — `ref()`, `definePrototypes()`, `defineCatalog()`, `isPrototypeRef()`, `toResultKey()`
+- `refs.ts` — `ref()`, `definePrototypes()`, `defineCatalog()`, `isPrototypeRef()`, `isPrototypeSpec()`, `isOverrideSpec()`, `isRunEntry()`, `toResultKey()`
 - `scenario.ts` — `ScenarioDefinition`, `defineScenario()`, `materializeScenario()`, `mergeScenarioPrototypeMaps()` — includes inheritance cycle detection
 - `results.ts` — `RunResult`, `ResultRecord`, `resolveField()`
 - `runtime-values.ts` — `depField()`, `isDepField()`, `dynamic()`, `isDynamic()`, `DepFieldValue`, `DynamicValue`, `DynamicContext`
@@ -38,7 +47,7 @@ Abstract interfaces that define extension points:
 
 Orchestration logic that composes domain and ports:
 
-- `planner.ts` — topological sort of prototype refs (`orderRefs`, `collectRequestedRefs`), recognizes `depField` refs as dependencies, auto-includes actor refs in requested set, throws `DependencyCycleError`
+- `planner.ts` — topological sort of prototype refs (`orderRefs`, `collectRequestedRefs`, `mergeInput`), recognizes `depField` refs as dependencies, auto-includes actor refs in requested set, throws `DependencyCycleError`
 - `executor.ts` — async serial execution loop (`execute`), resolves `ref`, `depField`, and `dynamic` tagged values, extracts override metadata from `OverrideSpec` wrappers, resolves actor/authorize/tenant, applies create precedence chain, wraps failures in typed errors
 - `fixture/schema.ts` — JSON fixture schema types (`FixtureSchema`, `FixturePrototype`), `parseFixture()`, `parseFixtureKey()`, constants (`DYNAMIC_PLACEHOLDER`, `REF_PREFIX`)
 - `fixture/build-fixture.ts` — `Fixture` class with `ref()`, `instance()`, `addDynamic()`, `addCreate()`, `compile()`, `build(registry)`
@@ -60,6 +69,8 @@ Composition root that wires adapters through the application layer:
 - `wrappers.ts` — `prototype()`, `override()`, `entry()` tagged wrappers for advanced metadata (actor, authorize, action, tenantFrom, create)
 - `registry.ts` — `createRegistry()` factory and `Registry` class (includes `resetSequences()`, `runCtx` support, `runAll(resource)`), implements `FixtureRegistryPort` via `FIXTURE_REGISTRY` symbol
 - `fixturegen.ts` — `fixturegen.parse()` public API for JSON fixture compilation
+- `seed.ts` — `seed` public API (`func`, `chain`) and `Seeder`/`SeederContext` types, published as the `./seed` subpath
+- `testing.ts` — `testing` public API (`createMemoryRegistry`, `runOrThrow`, `assertCreated`, `assertAttr`, `assertAttrNotEmpty`), published as the `./testing` subpath
 - `index.ts` — barrel export (composition root)
 
 ### runtime/
@@ -83,7 +94,7 @@ Runtime-specific entries for environment-dependent features:
 User-defined resources are declared via TypeScript module augmentation on `TsScenarioResources` in `src/domain/types.ts`:
 
 ```typescript
-declare module "ts_scenario/src/domain/types.js" {
+declare module "ts_scenario/types" {
   interface TsScenarioResources {
     users: {
       input: { name: string; role: string };

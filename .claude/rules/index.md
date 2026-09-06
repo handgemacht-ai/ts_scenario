@@ -40,6 +40,8 @@
 - `src/public/wrappers.ts` — prototype(), override(), entry() tagged wrappers
 - `src/public/registry.ts` — createRegistry(), Registry class (run, runScenario, runAll, resetSequences), implements FixtureRegistryPort
 - `src/public/fixturegen.ts` — fixturegen.parse() public API, Fixture re-export
+- `src/public/seed.ts` — seed public API (`func`, `chain`) and Seeder/SeederContext types, published as the `./seed` subpath
+- `src/public/testing.ts` — testing public API (`createMemoryRegistry`, `runOrThrow`, `assertCreated`, `assertAttr`, `assertAttrNotEmpty`), published as the `./testing` subpath
 - `src/public/index.ts` — barrel export (composition root)
 
 ### runtime/
@@ -54,6 +56,8 @@
 - `tests/scenarios.test.ts` — prototype DX, materialization
 - `tests/registry.test.ts` — scenario execution, modes, overrides
 - `tests/scenario-types.ts` — type-level correctness checks
+- `tests/worktree-create-hook.test.ts` — worktree-create hook provisioning: invokes `.pi/scripts/worktree-create.sh` and asserts the new worktree dir and `.worktree.env` are created
+- `tests/conformance/shared.test.ts` — shared end-to-end conformance suite: dependency chains, overrides, scenarios, and fixturegen exercised through the public API
 - `tests/unit/core-runtime.test.ts` — typed errors, depField, dynamic, AttrSequence unit tests
 - `tests/unit/dynamic-values.test.ts` — depField/dynamic resolution, sequencing, cycle detection, timestamps integration tests
 - `tests/unit/compatibility-wrappers.test.ts` — prototype(), override(), entry() wrapper tests
@@ -62,7 +66,10 @@
 - `tests/unit/run-all.test.ts` — registry.runAll() tests
 - `tests/unit/scenario-runtime.test.ts` — actor resolution, authorize defaults, tenant extraction, inheritance cycles, multi-parent merge
 - `tests/unit/fixturegen.test.ts` — JSON fixture compilation: parse, $ref, $dynamic, build idempotency, error cases, auto-build
+- `tests/unit/seed.test.ts` — `seed.func(name, fn)` and `seed.chain(...)` Seeder API: wrapping, ctx propagation, chaining
+- `tests/unit/testing-helpers.test.ts` — `testing` helpers: `createMemoryRegistry`, `runOrThrow`, `assertCreated`, `assertAttr`, `assertAttrNotEmpty`
 - `tests/node/fixture-file.test.ts` — Node runtime parseFixtureFile tests
+- `tests/node/sql-seed.test.ts` — `sqlFile(path, executeStatement)` Node runtime: reads a SQL file, splits on semicolons, and executes each statement
 - `tests/fixtures/schema.ts` — TsScenarioResources augmentation
 - `tests/fixtures/prototypes.ts` — test catalog and prototypes
 - `tests/fixtures/fixture-samples.json` — sample JSON fixture file with $ref and $dynamic
