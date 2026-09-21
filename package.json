@@ -15,6 +15,7 @@
   "files": ["dist", "LICENSE", "README.md"],
   "scripts": {
     "build": "tsc -p tsconfig.build.json && tsc -p tsconfig.build.cjs.json && node scripts/write-cjs-package-json.mjs",
+    "prepare": "npm run build",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:worktree-hook": "vitest run tests/worktree-create-hook.test.ts",
