@@ -9,3 +9,5 @@ sync-branch: "beads-sync"
 sync.mode: "dolt-native"
 
 backup.enabled: false
+
+sync.remote: "git+https://github.com/handgemacht-ai/ts_scenario"
