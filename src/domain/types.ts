@@ -54,7 +54,7 @@ export interface PrototypeHandle<
 
 export type PrototypeCollection<
   R extends ResourceKey,
-  P extends Record<string, ResourceInput<R>>,
+  P extends Record<string, unknown>,
 > = {
   readonly [K in keyof P]: PrototypeHandle<R, K & string>;
 };
