@@ -15,6 +15,7 @@ import { mergeInput, orderRefs } from "./planner.js";
 
 interface ResolveContext {
   readonly results: RunResult<CatalogShape>;
+  readonly recordsByKey: ReadonlyMap<string, ResultRecord>;
   readonly mode: RunMode;
   readonly ref: PrototypeRef;
   readonly attrSequence: AttrSequence;
@@ -38,6 +39,7 @@ export async function execute<Catalog extends CatalogShape>(
   const { cleanOverrides, overrideMeta } = extractOverrideMetadata(overrides);
   const ordered = orderRefs(store, requested, cleanOverrides, overrideMeta, metadata?.entryMetadata);
   const results = new RunResult<Catalog>();
+  const recordsByKey = new Map<string, ResultRecord>();
   const ctx = runCtx ?? {};
 
   for (const ref of ordered) {
@@ -46,7 +48,7 @@ export async function execute<Catalog extends CatalogShape>(
 
     const rawOverride = cleanOverrides[ref.resource]?.[ref.prototype] as Record<string, unknown> | undefined;
     const mergedInput = mergeInput(handle.input, rawOverride);
-    const rctx: ResolveContext = { results, mode, ref, attrSequence: attrSequence ?? new AttrSequence(), runCtx: ctx };
+    const rctx: ResolveContext = { results, recordsByKey, mode, ref, attrSequence: attrSequence ?? new AttrSequence(), runCtx: ctx };
     const resolvedAttrs = await resolveRuntimeValues(mergedInput, rctx) as ResultRecord;
 
     const entryMeta = metadata?.entryMetadata?.[key];
@@ -57,7 +59,7 @@ export async function execute<Catalog extends CatalogShape>(
     let actor: ResultRecord | undefined;
     if (mergedMeta.actor !== undefined) {
       if (isPrototypeRef(mergedMeta.actor)) {
-        actor = results.find(mergedMeta.actor);
+        actor = recordsByKey.get(toResultKey(mergedMeta.actor));
       } else {
         actor = mergedMeta.actor as ResultRecord;
       }
@@ -107,6 +109,7 @@ export async function execute<Catalog extends CatalogShape>(
     }
 
     results.set(ref, created);
+    recordsByKey.set(key, created);
   }
 
   return results;
@@ -164,7 +167,7 @@ async function resolveRuntimeValues(
   currentAttr?: string,
 ): Promise<unknown> {
   if (isPrototypeRef(value)) {
-    const record = ctx.results.find(value);
+    const record = ctx.recordsByKey.get(toResultKey(value));
     if (!record) {
       throw new MissingDependencyResultError(toResultKey(value));
     }
@@ -181,7 +184,7 @@ async function resolveRuntimeValues(
   }
 
   if (isDepField(value)) {
-    const record = ctx.results.find(value.ref);
+    const record = ctx.recordsByKey.get(toResultKey(value.ref));
     if (!record) {
       throw new MissingDependencyResultError(toResultKey(value.ref));
     }

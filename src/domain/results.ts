@@ -28,22 +28,24 @@ export class RunResult<Catalog extends CatalogShape> {
     this.#names.set(ref.prototype, names);
   }
 
-  find(target: PrototypeHandle | PrototypeRef): ResultRecord | undefined {
-    return this.#records.get(toResultKey(target));
-  }
-
   get<T extends CatalogTarget<Catalog>>(
     target: T,
   ): StoredRecord<T["resource"]> | undefined {
-    return this.#records.get(toResultKey(target)) as StoredRecord<T["resource"]> | undefined;
+    return this.#read<T["resource"]>(target);
+  }
+
+  #read<R extends ResourceKey>(
+    target: PrototypeHandle<R> | PrototypeRef<R>,
+  ): StoredRecord<R> | undefined {
+    return this.#records.get(toResultKey(target)) as StoredRecord<R> | undefined;
   }
 
   mustGet<T extends CatalogTarget<Catalog>>(target: T): StoredRecord<T["resource"]> {
-    const record = this.find(target);
+    const record = this.#read<T["resource"]>(target);
     if (!record) {
       throw new Error(`Missing record for ${toResultKey(target)}`);
     }
-    return record as StoredRecord<T["resource"]>;
+    return record;
   }
 
   lookup<
@@ -72,7 +74,9 @@ export class RunResult<Catalog extends CatalogShape> {
 
   attr(target: PrototypeHandle | PrototypeRef | string, field: string): unknown {
     const record =
-      typeof target === "string" ? this.byName(target) : this.find(target);
+      typeof target === "string"
+        ? this.byName(target)
+        : this.#records.get(toResultKey(target));
 
     if (!record) {
       return undefined;

@@ -1,5 +1,6 @@
 import type { CatalogShape, PrototypeHandle, PrototypeRef } from "../domain/types.js";
-import type { ResultRecord, RunResult } from "../domain/results.js";
+import type { CatalogTarget, ResultRecord, RunResult } from "../domain/results.js";
+import { toResultKey } from "../domain/refs.js";
 import type { CreateHandlers } from "../adapters/memory/create-adapter.js";
 import { createRegistry, type Registry, type RunOptions } from "./registry.js";
 
@@ -40,30 +41,27 @@ async function runOrThrow<Catalog extends CatalogShape>(
   }
 }
 
-type Target = PrototypeHandle | PrototypeRef;
-
-function assertCreated(
-  result: RunResult<CatalogShape>,
-  target: Target,
+function assertCreated<Catalog extends CatalogShape>(
+  result: RunResult<Catalog>,
+  target: CatalogTarget<Catalog>,
 ): void {
-  const record = result.find(target);
-  if (!record) {
-    const key = "ref" in target ? `${target.resource}:${target.name}` : `${target.resource}:${target.prototype}`;
-    throw new Error(`Expected record "${key}" to be created, but it was not found in results`);
+  if (!result.get(target)) {
+    throw new Error(
+      `Expected record "${toResultKey(target)}" to be created, but it was not found in results`,
+    );
   }
 }
 
-function assertAttr(
-  result: RunResult<CatalogShape>,
-  target: Target,
+function assertAttr<Catalog extends CatalogShape>(
+  result: RunResult<Catalog>,
+  target: CatalogTarget<Catalog>,
   attr: string,
   expected: unknown,
 ): void {
-  const record = result.find(target);
-  if (!record) {
+  if (!result.get(target)) {
     throw new Error(`Target not found in results`);
   }
-  const actual = record[attr];
+  const actual = result.attr(target, attr);
   if (actual !== expected) {
     throw new Error(
       `Expected "${attr}" to be ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`,
@@ -71,16 +69,15 @@ function assertAttr(
   }
 }
 
-function assertAttrNotEmpty(
-  result: RunResult<CatalogShape>,
-  target: Target,
+function assertAttrNotEmpty<Catalog extends CatalogShape>(
+  result: RunResult<Catalog>,
+  target: CatalogTarget<Catalog>,
   attr: string,
 ): void {
-  const record = result.find(target);
-  if (!record) {
+  if (!result.get(target)) {
     throw new Error(`Target not found in results`);
   }
-  const value = record[attr];
+  const value = result.attr(target, attr);
   if (value === undefined || value === null || value === "") {
     throw new Error(
       `Expected "${attr}" to be non-empty, got ${JSON.stringify(value)}`,
