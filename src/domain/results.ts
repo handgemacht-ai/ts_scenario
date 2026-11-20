@@ -3,11 +3,17 @@ import type {
   PrototypeHandle,
   PrototypeRef,
   ResourceKey,
-  ResourceRecord,
+  StoredRecord,
 } from "./types.js";
-import { toResultKey } from "./refs.js";
+import { ref, toResultKey } from "./refs.js";
 
 export type ResultRecord = Record<string, unknown>;
+
+export type CatalogTarget<Catalog extends CatalogShape> = {
+  [R in keyof Catalog & ResourceKey]:
+    | Catalog[R][keyof Catalog[R]]
+    | PrototypeRef<R, keyof Catalog[R] & string>;
+}[keyof Catalog & ResourceKey];
 
 export class RunResult<Catalog extends CatalogShape> {
   readonly #records = new Map<string, ResultRecord>();
@@ -22,32 +28,34 @@ export class RunResult<Catalog extends CatalogShape> {
     this.#names.set(ref.prototype, names);
   }
 
-  get<R extends ResourceKey>(
-    target: PrototypeHandle<R, string> | PrototypeRef<R, string>,
-  ): ResourceRecord<R> | undefined {
-    return this.#records.get(toResultKey(target)) as ResourceRecord<R> | undefined;
+  find(target: PrototypeHandle | PrototypeRef): ResultRecord | undefined {
+    return this.#records.get(toResultKey(target));
   }
 
-  mustGet<R extends ResourceKey>(
-    target: PrototypeHandle<R, string> | PrototypeRef<R, string>,
-  ): ResourceRecord<R> {
-    const record = this.get(target);
+  get<T extends CatalogTarget<Catalog>>(
+    target: T,
+  ): StoredRecord<T["resource"]> | undefined {
+    return this.#records.get(toResultKey(target)) as StoredRecord<T["resource"]> | undefined;
+  }
+
+  mustGet<T extends CatalogTarget<Catalog>>(target: T): StoredRecord<T["resource"]> {
+    const record = this.find(target);
     if (!record) {
       throw new Error(`Missing record for ${toResultKey(target)}`);
     }
-    return record;
+    return record as StoredRecord<T["resource"]>;
   }
 
   lookup<
     R extends keyof Catalog & ResourceKey,
     N extends keyof Catalog[R] & string,
-  >(resource: R, name: N): ResourceRecord<R> {
-    const key = `${resource}:${name}`;
+  >(resource: R, name: N): StoredRecord<R> {
+    const key = toResultKey(ref(resource, name));
     const record = this.#records.get(key);
     if (!record) {
       throw new Error(`Missing record for ${key}`);
     }
-    return record as ResourceRecord<R>;
+    return record as StoredRecord<R>;
   }
 
   byName(name: string): ResultRecord | undefined {
@@ -64,7 +72,7 @@ export class RunResult<Catalog extends CatalogShape> {
 
   attr(target: PrototypeHandle | PrototypeRef | string, field: string): unknown {
     const record =
-      typeof target === "string" ? this.byName(target) : this.get(target);
+      typeof target === "string" ? this.byName(target) : this.find(target);
 
     if (!record) {
       return undefined;

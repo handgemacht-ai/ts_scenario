@@ -28,6 +28,17 @@ declare module "../../src/domain/types.js" {
       };
     };
 
+    tickets: {
+      input: {
+        id: number;
+        title: string;
+      };
+      record: {
+        id: number;
+        title: string;
+      };
+    };
+
     posts: {
       input: {
         title: string;

@@ -4,7 +4,7 @@ summary: Reference for the ts_scenario src/ module structure (domain, ports, app
 owner: ts_scenario
 status: current
 tags: [testing, docs]
-last_verified: 2026-09-06
+last_verified: 2026-11-20
 holds:
   - The src/ module layout, import rules, module augmentation, memory-adapter behaviour (ids, timestamps), and the test, typecheck and build commands
 does_not_hold:

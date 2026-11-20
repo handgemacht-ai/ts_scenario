@@ -1,5 +1,7 @@
 import {
   definePrototypes,
+  dynamic,
+  depField,
   defineScenario,
   override,
   prototype,
@@ -156,3 +158,111 @@ function rejectNameOfOtherResource(result: World): void {
   // @ts-expect-error "viewerUser" belongs to users, not organizations
   result.lookup("organizations", "viewerUser");
 }
+
+function readAdapterTimestamps(result: World): unknown[] {
+  const org = result.mustGet(catalog.organizations.acme);
+  return [org.inserted_at, org.updated_at];
+}
+
+const ticketCatalog = {
+  tickets: definePrototypes("tickets", {
+    first: { id: 1, title: "First" },
+  }),
+};
+
+defineScenario(ticketCatalog, {
+  name: "numericIdOverride",
+  prototypes: {
+    tickets: {
+      first: { id: 7 },
+    },
+  },
+});
+
+defineScenario(ticketCatalog, {
+  name: "numericIdOverrideWithOptions",
+  prototypes: {
+    tickets: {
+      first: override({ id: 7 }, { action: "seed" }),
+    },
+  },
+});
+
+defineScenario(ticketCatalog, {
+  name: "dynamicIdOverride",
+  prototypes: {
+    tickets: {
+      first: { id: dynamic(() => 8) },
+    },
+  },
+});
+
+defineScenario(ticketCatalog, {
+  name: "depFieldIdOverride",
+  prototypes: {
+    tickets: {
+      first: { id: depField(ref("tickets", "first"), "id") },
+    },
+  },
+});
+
+defineScenario(ticketCatalog, {
+  name: "wrongIdTypeOverride",
+  prototypes: {
+    tickets: {
+      // @ts-expect-error tickets ids are numbers
+      first: { id: "seven" },
+    },
+  },
+});
+
+defineScenario(catalog, {
+  name: "dynamicStringIdOverride",
+  prototypes: {
+    organizations: {
+      acme: { id: dynamic(() => "org-dynamic") },
+    },
+  },
+});
+
+defineScenario(catalog, {
+  name: "wrongIdTypeOnStringResource",
+  prototypes: {
+    organizations: {
+      // @ts-expect-error organizations ids are strings
+      acme: { id: 7 },
+    },
+  },
+});
+
+const otherCatalog = {
+  organizations: definePrototypes("organizations", {
+    elsewhere: { name: "Elsewhere", slug: "elsewhere" },
+  }),
+};
+
+function rejectHandleFromOtherCatalog(result: World): void {
+  // @ts-expect-error "elsewhere" is not a prototype of this catalog
+  result.mustGet(otherCatalog.organizations.elsewhere);
+  // @ts-expect-error "elsewhere" is not a prototype of this catalog
+  result.get(otherCatalog.organizations.elsewhere);
+}
+
+function rejectRefFromOtherCatalog(result: World): void {
+  // @ts-expect-error "elsewhere" is not a prototype of this catalog
+  result.get(ref("organizations", "elsewhere"));
+}
+
+function acceptRefOfOwnCatalog(result: World): string {
+  return result.mustGet(ref("organizations", "acme")).slug;
+}
+
+definePrototypes("users", {
+  // @ts-expect-error a prototype value must be a users input or a prototype spec
+  wrongShape: { nope: true },
+});
+
+definePrototypes("users", {
+  // @ts-expect-error a string is neither an input nor a prototype spec
+  notAnObject: "viewer",
+});
