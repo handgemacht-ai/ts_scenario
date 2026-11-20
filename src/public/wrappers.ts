@@ -19,7 +19,7 @@ export function prototype<Input>(
 }
 
 export function override<Input>(
-  attrs: Partial<Input>,
+  attrs: Partial<Input> & { id?: string },
   options?: MetadataOptions,
 ): OverrideSpec<Input> {
   return {

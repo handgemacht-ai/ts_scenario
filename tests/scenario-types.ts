@@ -1,4 +1,13 @@
-import { definePrototypes, defineScenario, ref } from "../src/index.js";
+import {
+  definePrototypes,
+  defineScenario,
+  override,
+  ref,
+  type PrototypeHandle,
+  type ResourceKey,
+  type ResourceRecord,
+  type RunResult,
+} from "../src/index.js";
 import { catalog } from "./fixtures/prototypes.js";
 import "./fixtures/schema.js";
 
@@ -64,3 +73,63 @@ defineScenario(catalog, {
     },
   },
 });
+
+function readKnownFieldWithItsType(result: RunResult<typeof catalog>): string {
+  return result.mustGet(catalog.organizations.acme).slug;
+}
+
+function readUnionFieldWithItsType(
+  result: RunResult<typeof catalog>,
+): "viewer" | "admin" | "editor" | undefined {
+  return result.get(catalog.users.viewerUser)?.role;
+}
+
+function rejectUnknownField(result: RunResult<typeof catalog>): void {
+  // @ts-expect-error organizations records have no such field
+  result.mustGet(catalog.organizations.acme).nope;
+}
+
+function rejectWrongTypeAssignment(result: RunResult<typeof catalog>): number {
+  // @ts-expect-error organizations.slug is a string
+  return result.mustGet(catalog.organizations.acme).slug;
+}
+
+defineScenario(catalog, {
+  name: "fixedIdOverride",
+  prototypes: {
+    organizations: {
+      acme: { id: "org-fixed" },
+    },
+  },
+});
+
+defineScenario(catalog, {
+  name: "fixedIdOverrideWithOptions",
+  prototypes: {
+    organizations: {
+      acme: override({ id: "org-fixed" }, { action: "seed" }),
+    },
+  },
+});
+
+type Result = Pick<RunResult<typeof catalog>, "get">;
+type ResourceName = keyof typeof catalog & ResourceKey;
+
+function worldGet<R extends ResourceName, N extends keyof (typeof catalog)[R] & string>(
+  result: Result,
+  resource: R,
+  name: N,
+): ResourceRecord<R> {
+  const record = result.get(handleFor(resource, name));
+  if (!record) {
+    throw new Error(`missing ${resource}.${name}`);
+  }
+  return record;
+}
+
+function handleFor<R extends ResourceName, N extends keyof (typeof catalog)[R] & string>(
+  resource: R,
+  name: N,
+): PrototypeHandle<R, string> {
+  return catalog[resource][name] as PrototypeHandle<R, string>;
+}

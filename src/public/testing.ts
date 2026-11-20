@@ -59,7 +59,7 @@ function assertAttr(
   attr: string,
   expected: unknown,
 ): void {
-  const record = result.get(target);
+  const record: ResultRecord | undefined = result.get(target);
   if (!record) {
     throw new Error(`Target not found in results`);
   }
@@ -76,7 +76,7 @@ function assertAttrNotEmpty(
   target: Target,
   attr: string,
 ): void {
-  const record = result.get(target);
+  const record: ResultRecord | undefined = result.get(target);
   if (!record) {
     throw new Error(`Target not found in results`);
   }

@@ -5,6 +5,10 @@ owner: ts_scenario
 status: current
 tags: [testing, docs]
 last_verified: 2026-09-06
+holds:
+  - The src/ module layout, import rules, module augmentation, memory-adapter behaviour (ids, timestamps), and the test, typecheck and build commands
+does_not_hold:
+  - Consumer-side setup in other repos, release history, and per-feature design decisions
 ---
 
 # ts_scenario Development Guide
@@ -59,7 +63,7 @@ Default in-memory implementations of all ports:
 
 - `MemoryPrototypeStore` — wraps a catalog for handle lookup, supports dynamic `register()` for fixture-added prototypes
 - `MemoryCreateAdapter` — delegates to context-level create function, then resource-level create handler, or generates default records; auto-populates `inserted_at`/`updated_at` via `ClockPort`
-- `MemorySequenceAdapter` — generates `resource:prototype:N` IDs
+- `MemorySequenceAdapter` — generates `resource:prototype:N` IDs for records created without a handler; `testing.createMemoryRegistry` default handlers use random IDs, and an `id` set in an override is kept
 - `MemoryClockAdapter` — returns `new Date()`
 
 ### public/

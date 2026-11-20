@@ -458,9 +458,8 @@ describe("memory adapter timestamps", () => {
     });
 
     const result = await registry.runScenario(scenario);
-    const org = result.mustGet(organizations.acme);
-    expect(org.inserted_at).toBeDefined();
-    expect(org.updated_at).toBeDefined();
+    expect(result.attr(organizations.acme, "inserted_at")).toBeDefined();
+    expect(result.attr(organizations.acme, "updated_at")).toBeDefined();
   });
 
   it("does not overwrite existing inserted_at and updated_at", async () => {
@@ -484,8 +483,7 @@ describe("memory adapter timestamps", () => {
     });
 
     const result = await registry.runScenario(scenario);
-    const org = result.mustGet(organizations.acme);
-    expect(org.inserted_at).toBe(existingDate);
-    expect(org.updated_at).toBe(existingDate);
+    expect(result.attr(organizations.acme, "inserted_at")).toBe(existingDate);
+    expect(result.attr(organizations.acme, "updated_at")).toBe(existingDate);
   });
 });
