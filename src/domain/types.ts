@@ -63,7 +63,7 @@ export type CatalogShape = Record<string, Record<string, PrototypeHandle<any, an
 
 export type RuntimeOverride<Input> = {
   [K in keyof Input]?: Input[K] | TaggedRuntimeValue;
-};
+} & { id?: string };
 
 export type TaggedRuntimeValue =
   | { readonly $kind: "dep-field" }
@@ -94,7 +94,7 @@ export interface PrototypeSpec<Input = Record<string, unknown>> {
 
 export interface OverrideSpec<Input = Record<string, unknown>> {
   readonly $kind: "override-spec";
-  readonly attrs: Partial<Input>;
+  readonly attrs: Partial<Input> & { id?: string };
   readonly options: MetadataOptions;
 }
 

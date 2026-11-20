@@ -1,4 +1,10 @@
-import type { CatalogShape, PrototypeHandle, PrototypeRef } from "./types.js";
+import type {
+  CatalogShape,
+  PrototypeHandle,
+  PrototypeRef,
+  ResourceKey,
+  ResourceRecord,
+} from "./types.js";
 import { toResultKey } from "./refs.js";
 
 export type ResultRecord = Record<string, unknown>;
@@ -16,11 +22,15 @@ export class RunResult<Catalog extends CatalogShape> {
     this.#names.set(ref.prototype, names);
   }
 
-  get(target: PrototypeHandle | PrototypeRef): ResultRecord | undefined {
-    return this.#records.get(toResultKey(target));
+  get<R extends ResourceKey>(
+    target: PrototypeHandle<R, string> | PrototypeRef<R, string>,
+  ): ResourceRecord<R> | undefined {
+    return this.#records.get(toResultKey(target)) as ResourceRecord<R> | undefined;
   }
 
-  mustGet(target: PrototypeHandle | PrototypeRef): ResultRecord {
+  mustGet<R extends ResourceKey>(
+    target: PrototypeHandle<R, string> | PrototypeRef<R, string>,
+  ): ResourceRecord<R> {
     const record = this.get(target);
     if (!record) {
       throw new Error(`Missing record for ${toResultKey(target)}`);

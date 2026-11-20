@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import type { RunResult } from "../../src/index.js";
+import type { Registry } from "../../src/public/registry.js";
 
 // testing helpers do not exist yet — these imports will fail until implemented
 // Expected API surface from src/public/testing.ts:
@@ -12,19 +14,58 @@ import "../fixtures/schema.js";
 import { catalog } from "../fixtures/prototypes.js";
 
 describe("testing.createMemoryRegistry(catalog)", () => {
-  it("returns a Registry with deterministic create behavior and fresh sequence state", async () => {
+  it("returns a Registry with in-memory create behavior and fresh sequence state", async () => {
     const { testing } = await import("../../src/public/testing.js");
 
     const registry = testing.createMemoryRegistry(catalog);
 
-    // Should be able to run prototypes and get deterministic results
     const result = await registry.run([catalog.organizations.acme]);
     const org = result.byName("acme");
     expect(org).toBeDefined();
     expect(org!.name).toBe("Acme");
     expect(org!.slug).toBe("acme");
   });
+
+  it("gives a different random id to each run", async () => {
+    const registry = await aMemoryRegistry();
+
+    const first = await registry.run([catalog.organizations.acme]);
+    const second = await registry.run([catalog.organizations.acme]);
+
+    expectDifferentIds(first, second, catalog.organizations.acme);
+  });
+
+  it("keeps the id set by an override", async () => {
+    const registry = await aMemoryRegistry();
+
+    const result = await runWithIdOverride(registry, catalog.organizations.acme, "org-fixed");
+
+    expectId(result, catalog.organizations.acme, "org-fixed");
+  });
 });
+
+type CatalogRegistry = Registry<typeof catalog>;
+type CatalogResult = RunResult<typeof catalog>;
+type OrganizationHandle = typeof catalog.organizations.acme;
+
+async function aMemoryRegistry(): Promise<CatalogRegistry> {
+  const { testing } = await import("../../src/public/testing.js");
+  return testing.createMemoryRegistry(catalog);
+}
+
+function runWithIdOverride(registry: CatalogRegistry, handle: OrganizationHandle, id: string) {
+  return registry.run([handle], {
+    overrides: { organizations: { [handle.name]: { id } } },
+  });
+}
+
+function expectId(result: CatalogResult, handle: OrganizationHandle, id: string) {
+  expect(result.mustGet(handle).id).toBe(id);
+}
+
+function expectDifferentIds(first: CatalogResult, second: CatalogResult, handle: OrganizationHandle) {
+  expect(first.mustGet(handle).id).not.toBe(second.mustGet(handle).id);
+}
 
 describe("testing.runOrThrow(registry, entries, options?)", () => {
   it("runs entries and returns RunResult on success", async () => {
