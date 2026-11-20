@@ -20,6 +20,11 @@ export type ResourceRecord<K extends ResourceKey> = ResourceDefinition<K> extend
   ? RecordShape
   : never;
 
+export type StoredRecord<K extends ResourceKey> = ResourceRecord<K> & {
+  inserted_at: unknown;
+  updated_at: unknown;
+};
+
 export type PrototypeRef<
   R extends ResourceKey = ResourceKey,
   N extends string = string,
@@ -61,9 +66,15 @@ export type PrototypeCollection<
 
 export type CatalogShape = Record<string, Record<string, PrototypeHandle<any, any>>>;
 
-export type RuntimeOverride<Input> = {
+type RecordId<K extends ResourceKey> = ResourceRecord<K> extends { id: infer Id } ? Id : string;
+
+export type ResourceId<K extends ResourceKey> = ResourceInput<K> extends { id: infer Id }
+  ? Id
+  : RecordId<K>;
+
+export type RuntimeOverride<Input, Id = string> = {
   [K in keyof Input]?: Input[K] | TaggedRuntimeValue;
-} & { id?: string };
+} & { id?: Id | TaggedRuntimeValue };
 
 export type TaggedRuntimeValue =
   | { readonly $kind: "dep-field" }
@@ -73,8 +84,12 @@ export type TaggedRuntimeValue =
 export type ScenarioPrototypeMap<Catalog extends CatalogShape> = {
   [Resource in keyof Catalog]?: {
     [Name in keyof Catalog[Resource]]?: RuntimeOverride<
-      ResourceInput<Extract<Resource, ResourceKey>>
-    > | OverrideSpec<ResourceInput<Extract<Resource, ResourceKey>>>;
+      ResourceInput<Extract<Resource, ResourceKey>>,
+      ResourceId<Extract<Resource, ResourceKey>>
+    > | OverrideSpec<
+      ResourceInput<Extract<Resource, ResourceKey>>,
+      ResourceId<Extract<Resource, ResourceKey>>
+    >;
   };
 };
 
@@ -92,9 +107,9 @@ export interface PrototypeSpec<Input = Record<string, unknown>> {
   readonly options: MetadataOptions;
 }
 
-export interface OverrideSpec<Input = Record<string, unknown>> {
+export interface OverrideSpec<Input = Record<string, unknown>, Id = string> {
   readonly $kind: "override-spec";
-  readonly attrs: Partial<Input> & { id?: string };
+  readonly attrs: Partial<Input> & { id?: Id | TaggedRuntimeValue };
   readonly options: MetadataOptions;
 }
 

@@ -18,10 +18,10 @@ export function prototype<Input>(
   };
 }
 
-export function override<Input>(
-  attrs: Partial<Input> & { id?: string },
+export function override<Input, Id = string>(
+  attrs: OverrideSpec<Input, Id>["attrs"],
   options?: MetadataOptions,
-): OverrideSpec<Input> {
+): OverrideSpec<Input, Id> {
   return {
     $kind: "override-spec",
     attrs,

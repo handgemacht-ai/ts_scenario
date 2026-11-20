@@ -46,7 +46,7 @@ function assertCreated(
   result: RunResult<CatalogShape>,
   target: Target,
 ): void {
-  const record = result.get(target);
+  const record = result.find(target);
   if (!record) {
     const key = "ref" in target ? `${target.resource}:${target.name}` : `${target.resource}:${target.prototype}`;
     throw new Error(`Expected record "${key}" to be created, but it was not found in results`);
@@ -59,7 +59,7 @@ function assertAttr(
   attr: string,
   expected: unknown,
 ): void {
-  const record: ResultRecord | undefined = result.get(target);
+  const record = result.find(target);
   if (!record) {
     throw new Error(`Target not found in results`);
   }
@@ -76,7 +76,7 @@ function assertAttrNotEmpty(
   target: Target,
   attr: string,
 ): void {
-  const record: ResultRecord | undefined = result.get(target);
+  const record = result.find(target);
   if (!record) {
     throw new Error(`Target not found in results`);
   }

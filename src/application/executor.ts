@@ -57,7 +57,7 @@ export async function execute<Catalog extends CatalogShape>(
     let actor: ResultRecord | undefined;
     if (mergedMeta.actor !== undefined) {
       if (isPrototypeRef(mergedMeta.actor)) {
-        actor = results.get(mergedMeta.actor);
+        actor = results.find(mergedMeta.actor);
       } else {
         actor = mergedMeta.actor as ResultRecord;
       }
@@ -164,7 +164,7 @@ async function resolveRuntimeValues(
   currentAttr?: string,
 ): Promise<unknown> {
   if (isPrototypeRef(value)) {
-    const record = ctx.results.get(value);
+    const record = ctx.results.find(value);
     if (!record) {
       throw new MissingDependencyResultError(toResultKey(value));
     }
@@ -181,7 +181,7 @@ async function resolveRuntimeValues(
   }
 
   if (isDepField(value)) {
-    const record = ctx.results.get(value.ref);
+    const record = ctx.results.find(value.ref);
     if (!record) {
       throw new MissingDependencyResultError(toResultKey(value.ref));
     }

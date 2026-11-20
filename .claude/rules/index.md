@@ -6,7 +6,7 @@
 - `src/domain/types.ts` — Core types: TsScenarioResources, ResourceKey, PrototypeRef, PrototypeHandle, CatalogShape, ScenarioPrototypeMap, RuntimeOverride, TaggedRuntimeValue, MetadataOptions, PrototypeSpec, OverrideSpec, RunEntry
 - `src/domain/refs.ts` — ref(), definePrototypes(), defineCatalog(), isPrototypeRef(), isPrototypeSpec(), isOverrideSpec(), isRunEntry(), toResultKey()
 - `src/domain/scenario.ts` — ScenarioDefinition, defineScenario(), materializeScenario()
-- `src/domain/results.ts` — RunResult, ResultRecord, resolveField()
+- `src/domain/results.ts` — RunResult (get/mustGet typed by the catalog, find untyped, lookup(resource, name), byName, attr), ResultRecord, CatalogTarget, resolveField()
 - `src/domain/runtime-values.ts` — depField(), isDepField(), dynamic(), isDynamic(), DepFieldValue, DynamicValue, DynamicContext
 - `src/domain/sequences.ts` — AttrSequence (per-attribute sequence counters)
 - `src/domain/errors.ts` — UnknownResourceError, UnknownPrototypeError, DependencyCycleError, MissingDependencyResultError, MissingDependencyFieldError, DynamicEvaluationError, CreateFailureError, ScenarioInheritanceCycleError, FixtureParseError, FixtureNotBuiltError, FixtureUnknownKeyError, FixtureUnboundDynamicError
@@ -63,6 +63,7 @@
 - `tests/unit/compatibility-wrappers.test.ts` — prototype(), override(), entry() wrapper tests
 - `tests/unit/create-context-extended.test.ts` — extended CreateContext shape tests (ref, runCtx, results, action, actor, tenant)
 - `tests/unit/create-precedence.test.ts` — create function precedence chain tests
+- `tests/unit/lookup.test.ts` — `RunResult.lookup(resource, name)` equals `mustGet` by handle; missing record throws
 - `tests/unit/run-all.test.ts` — registry.runAll() tests
 - `tests/unit/scenario-runtime.test.ts` — actor resolution, authorize defaults, tenant extraction, inheritance cycles, multi-parent merge
 - `tests/unit/fixturegen.test.ts` — JSON fixture compilation: parse, $ref, $dynamic, build idempotency, error cases, auto-build
