@@ -52,12 +52,12 @@ export class RunResult<Catalog extends CatalogShape> {
     R extends keyof Catalog & ResourceKey,
     N extends keyof Catalog[R] & string,
   >(resource: R, name: N): StoredRecord<R> {
-    const key = toResultKey(ref(resource, name));
-    const record = this.#records.get(key);
+    const target = ref(resource, name);
+    const record = this.#read<R>(target);
     if (!record) {
-      throw new Error(`Missing record for ${key}`);
+      throw new Error(`Missing record for ${toResultKey(target)}`);
     }
-    return record as StoredRecord<R>;
+    return record;
   }
 
   byName(name: string): ResultRecord | undefined {
