@@ -2,8 +2,8 @@ import {
   definePrototypes,
   defineScenario,
   override,
+  prototype,
   ref,
-  type PrototypeHandle,
   type ResourceKey,
   type ResourceRecord,
   type RunResult,
@@ -55,6 +55,7 @@ defineScenario(catalog, {
   name: "badPrototypeName",
   prototypes: {
     users: {
+      // @ts-expect-error missingUser is not a users prototype
       missingUser: {
         role: "viewer",
       },
@@ -112,24 +113,46 @@ defineScenario(catalog, {
   },
 });
 
-type Result = Pick<RunResult<typeof catalog>, "get">;
+const specCollection = definePrototypes("organizations", {
+  specced: prototype({ name: "Specced", slug: "specced" }, { action: "seed" }),
+  plain: { name: "Plain", slug: "plain" },
+});
+
+function acceptSpecAndPlainValues(): string {
+  return specCollection.specced.name + specCollection.plain.name;
+}
+
+function rejectUnknownNameOnSpecCollection(): void {
+  // @ts-expect-error "other" is not a prototype of specCollection
+  specCollection.other;
+}
+
+type World = RunResult<typeof catalog>;
 type ResourceName = keyof typeof catalog & ResourceKey;
 
 function worldGet<R extends ResourceName, N extends keyof (typeof catalog)[R] & string>(
-  result: Result,
+  result: World,
   resource: R,
   name: N,
 ): ResourceRecord<R> {
-  const record = result.get(handleFor(resource, name));
-  if (!record) {
-    throw new Error(`missing ${resource}.${name}`);
-  }
-  return record;
+  return result.lookup(resource, name);
 }
 
-function handleFor<R extends ResourceName, N extends keyof (typeof catalog)[R] & string>(
-  resource: R,
-  name: N,
-): PrototypeHandle<R, string> {
-  return catalog[resource][name] as PrototypeHandle<R, string>;
+function worldGetKnownName(result: World): string {
+  return worldGet(result, "organizations", "acme").slug;
+}
+
+function rejectUnknownResource(result: World): void {
+  // @ts-expect-error "nope" is not a resource of the catalog
+  result.lookup("nope", "acme");
+}
+
+function rejectUnknownName(result: World): void {
+  // @ts-expect-error "missing" is not an organizations prototype
+  result.lookup("organizations", "missing");
+}
+
+function rejectNameOfOtherResource(result: World): void {
+  // @ts-expect-error "viewerUser" belongs to users, not organizations
+  result.lookup("organizations", "viewerUser");
 }

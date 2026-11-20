@@ -33,7 +33,7 @@ export function isPrototypeSpec(value: unknown): value is PrototypeSpec {
 export function definePrototypes<
   R extends ResourceKey,
   const P extends Record<string, ResourceInput<R> | PrototypeSpec<ResourceInput<R>>>,
->(resource: R, prototypes: P): PrototypeCollection<R, P & Record<string, ResourceInput<R>>> {
+>(resource: R, prototypes: P): PrototypeCollection<R, P> {
   const entries = Object.entries(prototypes).map(([name, inputOrSpec]) => {
     const spec = isPrototypeSpec(inputOrSpec);
     const rawInput = spec ? inputOrSpec.attrs : inputOrSpec;
@@ -53,7 +53,7 @@ export function definePrototypes<
     return [name, handle] as const;
   });
 
-  return Object.fromEntries(entries) as PrototypeCollection<R, P & Record<string, ResourceInput<R>>>;
+  return Object.fromEntries(entries) as PrototypeCollection<R, P>;
 }
 
 export function defineCatalog<const C extends CatalogShape>(catalog: C): C {

@@ -38,6 +38,18 @@ export class RunResult<Catalog extends CatalogShape> {
     return record;
   }
 
+  lookup<
+    R extends keyof Catalog & ResourceKey,
+    N extends keyof Catalog[R] & string,
+  >(resource: R, name: N): ResourceRecord<R> {
+    const key = `${resource}:${name}`;
+    const record = this.#records.get(key);
+    if (!record) {
+      throw new Error(`Missing record for ${key}`);
+    }
+    return record as ResourceRecord<R>;
+  }
+
   byName(name: string): ResultRecord | undefined {
     const matches = this.#names.get(name) ?? [];
     if (matches.length > 1) {
