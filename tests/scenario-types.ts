@@ -266,3 +266,8 @@ definePrototypes("users", {
   // @ts-expect-error a string is neither an input nor a prototype spec
   notAnObject: "viewer",
 });
+
+function rejectPublicFind(result: World): void {
+  // @ts-expect-error RunResult has no public find
+  result.find(ref("organizations", "acme"));
+}

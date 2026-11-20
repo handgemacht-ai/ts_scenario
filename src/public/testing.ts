@@ -52,16 +52,24 @@ function assertCreated<Catalog extends CatalogShape>(
   }
 }
 
+function exactField(record: ResultRecord, field: string): unknown {
+  if (Object.hasOwn(record, field)) {
+    return record[field];
+  }
+  return undefined;
+}
+
 function assertAttr<Catalog extends CatalogShape>(
   result: RunResult<Catalog>,
   target: CatalogTarget<Catalog>,
   attr: string,
   expected: unknown,
 ): void {
-  if (!result.get(target)) {
+  const record = result.get(target);
+  if (!record) {
     throw new Error(`Target not found in results`);
   }
-  const actual = result.attr(target, attr);
+  const actual = exactField(record, attr);
   if (actual !== expected) {
     throw new Error(
       `Expected "${attr}" to be ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`,
@@ -74,10 +82,11 @@ function assertAttrNotEmpty<Catalog extends CatalogShape>(
   target: CatalogTarget<Catalog>,
   attr: string,
 ): void {
-  if (!result.get(target)) {
+  const record = result.get(target);
+  if (!record) {
     throw new Error(`Target not found in results`);
   }
-  const value = result.attr(target, attr);
+  const value = exactField(record, attr);
   if (value === undefined || value === null || value === "") {
     throw new Error(
       `Expected "${attr}" to be non-empty, got ${JSON.stringify(value)}`,

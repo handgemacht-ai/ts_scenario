@@ -151,6 +151,19 @@ describe("testing.assertAttr(results, target, attr, expected)", () => {
 
     expect(() => testing.assertAttr(result, catalog.organizations.beta, "name", "Beta")).toThrow();
   });
+
+  it("matches only the exact field name, not camelCase or snake_case variants", async () => {
+    const { testing } = await import("../../src/public/testing.js");
+
+    const registry = testing.createMemoryRegistry(catalog, {
+      create: { organizations: () => ({ id: "o1", display_name: "Acme" }) },
+    });
+    const result = await registry.run([catalog.organizations.acme]);
+
+    expect(() => testing.assertAttr(result, catalog.organizations.acme, "display_name", "Acme")).not.toThrow();
+    expect(() => testing.assertAttr(result, catalog.organizations.acme, "displayName", "Acme")).toThrow();
+    expect(() => testing.assertAttrNotEmpty(result, catalog.organizations.acme, "displayName")).toThrow();
+  });
 });
 
 describe("testing.assertAttrNotEmpty(results, target, attr)", () => {
